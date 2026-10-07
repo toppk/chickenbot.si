@@ -1,0 +1,91 @@
+# Architecture
+
+Chickenbot's Bar is one page: a three.js scene drawn at low resolution, then pixelated and
+outlined. It shows a round bar with chickenbot behind it, regulars, walk-ins, table groups and a
+waitress. Below the scene there's a status bar and chat. ImGui-style debug windows sit on top.
+There is no framework: plain ES modules, bundled by Bun.
+
+## Layers
+
+Folders roughly follow who depends on whom. Lower layers don't call into higher ones at startup
+(see "Startup" below).
+
+| folder     | what lives there |
+|------------|------------------|
+| `core/`    | maths/random helpers; `state.js`, the few values written by several modules |
+| `render/`  | renderer and scene, materials and pixel-art textures, mesh helpers, wall fade, post-process, camera and its input |
+| `scene/`   | things in the room: layout constants, walls and furniture, ceiling, bar, the chickenbot model, people models, glasses, particles |
+| `sim/`     | what happens: drinks menu, orders, patrons, the waitress, chickenbot's behaviour, the world tick |
+| `ui/`      | DOM overlays: speech bubbles, status bar, face, chat, debug windows |
+| `brain/`   | the WebSocket link and protocol handler; the local fallback brain |
+| `audio/`   | lofi music and sound effects (Web Audio, off until the visitor turns it on) |
+
+Some modules call "up" a layer while the page runs. For example, glasses report a spill with
+`send()` from `brain/link.js`, and orders read the world clock. That's why the module graph has
+cycles. See [protocol.md](protocol.md) for the messages.
+
+## Startup
+
+ES modules evaluate dependencies first, and with cycles the order follows the import graph, not
+the order of the imports in any one file. So:
+
+1. Module top level only builds that module's own objects, plus scene objects through the
+   `render/` and `scene/` builders. For example, `sim/patrons.js` seats the regulars and
+   `sim/waitress.js` creates June.
+2. `main.js` runs last and does the rest in a fixed order:
+   - `openBar()` (`sim/world.js`): Rosa at the bar with an order, a table already drinking, a
+     puddle, "doors open", and reconnecting a saved brain link.
+   - `initDebug()` (`ui/debug/panels.js`): builds the stats, brain and wire windows.
+   - Size the render targets, redraw canvas textures once the VT323 font loads, start the frame loop.
+
+Breaking rule 1 shows up as an error at load in the smoke test. In bundled builds it may be
+`undefined` rather than a TDZ error, because Bun hoists module bindings.
+
+## Frame loop (`main.js`)
+
+Each frame, with `dt` capped at 50 ms:
+
+1. Simulation: `world` → local `brain.tick` (does nothing while a link is live) → patrons →
+   waitress → chickenbot → people animation → glasses → particles → puddles → camera.
+2. Render: a normals pass (walls fading out are hidden), a colour pass, then the post pass that
+   pixelates and draws ink edges from depth and normal discontinuities.
+3. UI: speech bubbles follow heads, the face redraws, lofi levels update. The HUD refreshes when
+   marked dirty or every 0.25 s, the debug stats every 0.25 s.
+
+## Shared state
+
+ES module imports are read-only bindings, so the handful of values written from more than one
+module live in `core/state.js`: `doorSwing`, `music`, `lightLevel`, `faceFlash`, `PIX` (pixel
+size), `autoOrbit`, `idleT`, `wireEl` and `wireState`. Everything else is owned by one module and
+changed through that module's functions or by mutating the objects it exports (`hen`, `orders`,
+`people`, `CAM` and so on).
+
+## Build
+
+- `bun run dev` serves `web/index.html` through Bun's dev server.
+- `scripts/build.js` uses `Bun.build` with `web/index.html` as the entry and writes `dist/`:
+  minified, content-hashed JS and CSS, with source maps.
+- three.js is pinned at 0.128.0. By default it's bundled. With `--three=cdn` it's left external and
+  the page gets an import map to jsDelivr, with an integrity hash computed from the npm copy.
+  The browser rejects a CDN file that doesn't match.
+
+## Testing
+
+`tests/e2e/smoke.test.js` drives the built page in headless Chromium (SwiftShader WebGL). It
+checks:
+
+- the page loads with no console errors and frames run;
+- the opening order gets poured;
+- protocol messages change the HUD, chat and patrons;
+- chat reaches the local brain;
+- the debug windows, lofi toggle, hide/show and camera input work;
+- at phone width the debug windows start folded and a saved brain link goes to RETRY.
+
+CI runs it against both three.js builds.
+
+## Known quirks, kept as-is
+
+- `setMood` sets `state.faceFlash = 0`, and the face only flashes while it's above 0, so the
+  mood-change flash never shows.
+- `local-brain.js` calls the simulation directly instead of speaking the protocol, so a server
+  can't simply replace it yet.

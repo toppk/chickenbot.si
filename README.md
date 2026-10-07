@@ -33,12 +33,18 @@ web/              the site (Bun bundles from web/index.html)
   audio/          lofi music and sound effects
 scripts/          build.js, preview.js (static file server)
 tests/e2e/        headless-browser smoke test
+docs/             architecture and protocol
 ```
 
 `server/` is reserved for the WebSocket brain backend.
 
 Append `?ws=ws://host:port` to the URL to point the bar at a brain server; without one
 the in-page local brain runs it.
+
+## Docs
+
+- [docs/architecture.md](docs/architecture.md): layers, startup, frame loop, build and tests
+- [docs/protocol.md](docs/protocol.md): the brain WebSocket messages
 
 ## Module rules
 
