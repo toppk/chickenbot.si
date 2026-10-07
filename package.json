@@ -3,7 +3,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun --watch server.ts",
-    "start": "bun server.ts"
+    "dev": "bun scripts/preview.js public",
+    "build": "bun scripts/build.js",
+    "preview": "bun scripts/preview.js",
+    "lint": "biome ci scripts tests",
+    "format": "biome check --write scripts tests",
+    "test:e2e": "bun test tests/e2e",
+    "check": "bun run lint && bun run build && bun run test:e2e"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "playwright": "^1.63.0"
   }
 }

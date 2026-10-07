@@ -7,11 +7,14 @@ join it later.
 ## Running locally
 
 ```sh
-bun run dev        # http://localhost:3000, restarts on server changes
-PORT=8080 bun start
+bun install
+bun run dev          # serve public/ at http://localhost:3000
+bun run build        # write dist/, the deployable static site
+bun run preview      # serve dist/
+bun run check        # lint, build, browser smoke test
 ```
 
-`server.ts` is a plain static file server for `public/`; no build step.
+The smoke test needs a Playwright browser once: `bunx playwright install chromium-headless-shell`.
 
 ## Layout
 
@@ -23,7 +26,8 @@ PORT=8080 bun start
   - UI: `bubbles`, `hud`, `camera`, `debug`
   - brains: `net` (WebSocket brain link + protocol), `local-brain` (fallback, chat input)
   - `post` (pixelate + ink pass), `lofi` (Web Audio music/sfx), `main` (frame loop)
-- `server.ts` — dev server
+- `scripts/` — `build.js`, `preview.js` (static file server)
+- `tests/e2e/` — headless-browser smoke test of the page and its protocol hooks
 
 Append `?ws=ws://host:port` to the URL to point the bar at a brain server; without one
 the in-page local brain runs it.
