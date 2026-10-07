@@ -152,7 +152,7 @@ export function legIK(leg, p, stride, lift, hipY) {
   }
   const dz = z,
     dy = y + ANK - hipY;
-  let d = Math.min(Math.hypot(dz, dy), L1 + L2 - 1e-4);
+  const d = Math.min(Math.hypot(dz, dy), L1 + L2 - 1e-4);
   const a = Math.atan2(dz, -dy),
     b = Math.acos(clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1));
   const th1 = a - b,

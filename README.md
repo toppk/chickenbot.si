@@ -10,7 +10,7 @@ join it later.
 bun install
 bun run dev          # http://localhost:3000 with hot reload, straight from web/
 bun run build        # dist/: the deployable static site, three.js bundled
-bun run build:cdn    # same, but three.js loads from jsDelivr (pinned, integrity-checked)
+bun run build:cdn    # same, but three.js loads from jsDelivr (same version as the lockfile, integrity-checked)
 bun run preview      # serve dist/
 bun run check        # lint, build, browser smoke test
 ```
@@ -55,7 +55,8 @@ the in-page local brain runs it.
 
 ## Module rules
 
-- ES modules with explicit imports. three.js is `import * as THREE from 'three'`, pinned at 0.128.0.
+- ES modules with explicit imports. three.js is `import * as THREE from 'three'`; `render/three-compat.js` keeps the
+  r128-era look (colour management off, legacy light levels and falloff).
 - Imports are read-only, so a value written from more than one module lives in `core/state.js`.
 - Modules import each other in cycles, so the order they evaluate in is not the order of the imports.
   At the top level a module may only call scene builders (`render/`, `scene/`, as `patrons.js` does

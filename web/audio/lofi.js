@@ -20,7 +20,7 @@ export const lofi = {
   prog: null,
   pourOn: false,
 };
-const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
+const mtof = (m) => 440 * 2 ** ((m - 69) / 12);
 const PROGS = {
   easy: {
     names: ['Fmaj9', 'Em7', 'Dm9', 'Cmaj9'],

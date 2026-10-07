@@ -10,9 +10,15 @@ const { values: opts } = parseArgs({
 if (!['bundle', 'cdn'].includes(opts.three)) throw new Error(`--three must be bundle or cdn, got ${opts.three}`);
 
 const threePkg = JSON.parse(await readFile('node_modules/three/package.json', 'utf8'));
-const threeModule = await readFile('node_modules/three/build/three.module.js');
-const THREE_CDN = `https://cdn.jsdelivr.net/npm/three@${threePkg.version}/build/three.module.js`;
-const THREE_SRI = `sha384-${createHash('sha384').update(threeModule).digest('base64')}`;
+const THREE_BASE = `https://cdn.jsdelivr.net/npm/three@${threePkg.version}/build/`;
+const THREE_CDN = `${THREE_BASE}three.module.js`;
+// three.module.js imports ./three.core.js (r171+); every file the browser fetches needs a hash
+const THREE_FILES = ['three.module.js', 'three.core.js'];
+const threeIntegrity = {};
+for (const f of THREE_FILES) {
+  const bytes = await readFile(`node_modules/three/build/${f}`);
+  threeIntegrity[THREE_BASE + f] = `sha384-${createHash('sha384').update(bytes).digest('base64')}`;
+}
 
 await rm(opts.outdir, { recursive: true, force: true });
 const result = await Bun.build({
@@ -29,7 +35,7 @@ if (!result.success) {
 
 if (opts.three === 'cdn') {
   // the bundle keeps a bare `import "three"`; an import map resolves it to the pinned CDN copy
-  const importMap = JSON.stringify({ imports: { three: THREE_CDN }, integrity: { [THREE_CDN]: THREE_SRI } });
+  const importMap = JSON.stringify({ imports: { three: THREE_CDN }, integrity: threeIntegrity });
   for (const f of await readdir(opts.outdir)) {
     if (!f.endsWith('.html')) continue;
     const path = join(opts.outdir, f);

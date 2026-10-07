@@ -17,6 +17,6 @@
     "playwright": "^1.63.0"
   },
   "dependencies": {
-    "three": "^0.128.0"
+    "three": "^0.186.0"
   }
 }

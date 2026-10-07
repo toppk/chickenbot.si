@@ -5,11 +5,12 @@ import { M, ctex, toon } from '../render/materials.js';
 import { box, cyl, plane, put, sph } from '../render/mesh.js';
 import { finalizeWall, makeWall } from '../render/wall-fade.js';
 import { ROOM, WALL_H } from './layout.js';
+import { LIGHT_SCALE } from '../render/three-compat.js';
 
 // The four walls with their decorations, the jukebox, pool table and lights.
-export const ambient = new THREE.AmbientLight(0x7a5a46, 0.6);
+export const ambient = new THREE.AmbientLight(0x7a5a46, 0.6 * LIGHT_SCALE);
 scene.add(ambient);
-const sun = new THREE.DirectionalLight(0xffe6c8, 0.55);
+const sun = new THREE.DirectionalLight(0xffe6c8, 0.55 * LIGHT_SCALE);
 sun.position.set(-3, 10, 4);
 scene.add(sun);
 export const pendLights = [];
@@ -290,7 +291,7 @@ finalizeWall(wS);
 baseStub(-4.95, E, 5.4, 0.32);
 baseStub(4.95, E, 5.4, 0.32);
 baseStub(0, E, 4.5, 0.32);
-const winLight = new THREE.PointLight(0x5a7aaa, 0.5, 6, 1);
+const winLight = new THREE.PointLight(0x5a7aaa, 0.5 * LIGHT_SCALE, 6, 1);
 winLight.position.set(0, 2, ROOM - 0.8);
 scene.add(winLight);
 // ---- WEST: chalkboard menu, cue rack, the hallway
@@ -352,7 +353,7 @@ export const tubes = [];
 for (const z of [-0.47, 0.47]) {
   tubes.push(put(cyl(0.05, 0.05, 1.2, toon(0x7ad0ff, { emissive: 0x2a6aa0 }), 8), -0.2, 0.7, z, juke));
 }
-export const jukeLight = new THREE.PointLight(0xff9a3a, 0.8, 4, 1);
+export const jukeLight = new THREE.PointLight(0xff9a3a, 0.8 * LIGHT_SCALE, 4, 1);
 jukeLight.position.set(ROOM - 1.1, 1.0, 0);
 scene.add(jukeLight);
 // pool table (west)
@@ -378,6 +379,6 @@ for (const z of [-1.2, 1.2]) put(box(1.34, 0.08, 0.1, M.mahogTop), 0, 0.91, z, p
 put(cyl(0.012, 0.02, 1.4, toon(0xc8a46a), 5), 0.3, 0.95, 0.5, pool).rotation.set(Math.PI / 2, 0, 0.4);
 const poolLamp = put(box(0.4, 0.12, 1.4, M.green), -5.0, 2.35, 0.2);
 put(cyl(0.01, 0.01, 1.0, M.black, 4), -5.0, 2.9, 0.2);
-const poolLight = new THREE.PointLight(0xffe0a0, 0.5, 3.5, 1);
+const poolLight = new THREE.PointLight(0xffe0a0, 0.5 * LIGHT_SCALE, 3.5, 1);
 poolLight.position.set(-5, 2.0, 0.2);
 scene.add(poolLight);

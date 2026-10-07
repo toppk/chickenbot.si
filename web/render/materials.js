@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import './three-compat.js';
 
 // Toon materials, the shared palette and pixel-art canvas textures.
 const GRAD = (() => {

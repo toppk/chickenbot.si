@@ -14,6 +14,7 @@ import { say } from '../ui/bubbles.js';
 import { chatLine } from '../ui/chat.js';
 import { connect, send, snapshot, wsUrl } from '../brain/link.js';
 import { lofi } from '../audio/lofi.js';
+import { LIGHT_SCALE } from '../render/three-compat.js';
 
 // World tick (spawning, door, street, jukebox, lights) and the opening state.
 export let clock = 0,
@@ -108,7 +109,7 @@ export function world(dt) {
   const jk = state.music ? 0.6 + 0.4 * Math.sin(jukeT * 3) : 0.08;
   jukeGlow.emissiveIntensity = jk + (lofi.pulse || 0) * 0.8;
   lofi.pulse = Math.max(0, (lofi.pulse || 0) - dt * 4);
-  jukeLight.intensity = state.music ? 0.5 + 0.4 * Math.sin(jukeT * 2.2) : 0.05;
+  jukeLight.intensity = (state.music ? 0.5 + 0.4 * Math.sin(jukeT * 2.2) : 0.05) * LIGHT_SCALE;
   jukeLight.color.setHSL((jukeT * 0.05) % 1, 0.7, 0.55);
   if (state.music && Math.random() < 0.3)
     for (const t of tubes) {
@@ -129,8 +130,8 @@ export function world(dt) {
       1.2,
     );
   // lights
-  ambient.intensity = 0.35 + 0.35 * state.lightLevel;
-  for (const l of pendLights) l.intensity = 0.25 + 0.45 * state.lightLevel;
+  ambient.intensity = (0.35 + 0.35 * state.lightLevel) * LIGHT_SCALE;
+  for (const l of pendLights) l.intensity = (0.25 + 0.45 * state.lightLevel) * LIGHT_SCALE;
   stateT -= dt;
   if (stateT <= 0) {
     stateT = 5;

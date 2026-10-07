@@ -52,6 +52,16 @@ Each frame, with `dt` capped at 50 ms:
 3. UI: speech bubbles follow heads, the face redraws, lofi levels update. The HUD refreshes when
    marked dirty or every 0.25 s, the debug stats every 0.25 s.
 
+## three.js compatibility
+
+The scene was built and lit on three r128. `render/three-compat.js`, imported by `renderer.js` and
+`materials.js` before any material exists, keeps that look on current three:
+
+- Colour management is off, so hex colours are used as-is instead of being treated as sRGB.
+- Every light intensity is multiplied by `LIGHT_SCALE` (π), undoing r155's physical-light scaling.
+- The point-light distance falloff in the shader is restored to r128's linear ramp. If a three.js
+  upgrade changes that shader code, the module throws at load and the smoke test fails.
+
 ## Shared state
 
 ES module imports are read-only bindings, so the handful of values written from more than one
@@ -65,8 +75,8 @@ changed through that module's functions or by mutating the objects it exports (`
 - `bun run dev` serves `web/index.html` through Bun's dev server.
 - `scripts/build.js` uses `Bun.build` with `web/index.html` as the entry and writes `dist/`:
   minified, content-hashed JS and CSS, with source maps.
-- three.js is pinned at 0.128.0. By default it's bundled. With `--three=cdn` it's left external and
-  the page gets an import map to jsDelivr, with an integrity hash computed from the npm copy.
+- three.js comes from npm at the version in `bun.lock`. By default it's bundled. With `--three=cdn` it's left external and
+  the page gets an import map to jsDelivr, with integrity hashes computed from the npm copies of `three.module.js` and `three.core.js`.
   The browser rejects a CDN file that doesn't match.
 
 ## Testing

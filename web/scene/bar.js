@@ -5,6 +5,7 @@ import { M, toon } from '../render/materials.js';
 import { box, cyl, put, sph } from '../render/mesh.js';
 import { BAR_IN, BAR_OUT, ISLAND_R, STATION_A, STOOL_R, TOP } from './layout.js';
 import { pendLights } from './room.js';
+import { LIGHT_SCALE } from '../render/three-compat.js';
 
 // The round centre bar, back-bar bottles, stools and tables.
 {
@@ -86,7 +87,7 @@ import { pendLights } from './room.js';
     sh.material.side = THREE.DoubleSide;
     put(sh, p.x, 2.38, p.z);
     put(sph(0.06, M.bulb, 6), p.x, 2.38, p.z);
-    const l = new THREE.PointLight(0xffd090, 0.55, 4.5, 1);
+    const l = new THREE.PointLight(0xffd090, 0.55 * LIGHT_SCALE, 4.5, 1);
     l.position.set(p.x, 2.1, p.z);
     scene.add(l);
     pendLights.push(l);
