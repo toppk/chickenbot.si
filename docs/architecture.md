@@ -85,7 +85,7 @@ CI runs it against both three.js builds.
 
 ## Known quirks, kept as-is
 
-- The mood-change face flash was a no-op (`setMood` set `faceFlash` to 0). It now flashes for 0.3 s
-  when "flash face on mood change" is ticked in the brain debug window; off by default for now.
+- The mood-change face flash was a no-op (`setMood` set `faceFlash` to 0). It now flashes for 0.3 s;
+  "flash face on mood change" in the brain debug window turns it off.
 - `local-brain.js` calls the simulation directly instead of speaking the protocol, so a server
   can't simply replace it yet.

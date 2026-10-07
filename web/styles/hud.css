@@ -39,6 +39,11 @@
   text-shadow: 2px 2px 0 var(--redlo);
   letter-spacing: 0.04em;
 }
+/* fits the longest mood (FRAZZLED, 8 chars + letter spacing) so the cell doesn't resize as the mood changes */
+#h-mood {
+  min-width: 8.5ch;
+  text-align: center;
+}
 .lab {
   font: 8px / 1 var(--px);
   color: var(--cream);

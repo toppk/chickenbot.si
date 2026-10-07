@@ -4,7 +4,7 @@ export const state = {
   music: true,
   lightLevel: 0.8,
   faceFlash: 0,
-  moodFlash: false,
+  moodFlash: true,
   PIX: 3,
   autoOrbit: true,
   idleT: 0,
