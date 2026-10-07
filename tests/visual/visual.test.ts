@@ -17,12 +17,16 @@ const THRESHOLD = 0.1;
 const MAX_DIFF_RATIO = 0.002;
 const SIM_MS = 5_000;
 
-const VIEWS = [
+const VIEWS: View[] = [
   { name: 'default', cam: '38,36,4.9' },
   { name: 'window-side', cam: '200,30,7' },
   { name: 'bar-closeup', cam: '120,45,3' },
   { name: 'ceiling', cam: '38,-40,5' },
   { name: 'phone', cam: '38,36,4.9', viewport: { width: 420, height: 860 } },
+  // the same view at other sizes: the room should keep its framing and pixel character
+  { name: 'ultrawide', cam: '38,36,4.9', viewport: { width: 2560, height: 1080 } },
+  { name: 'panel', cam: '38,36,4.9', viewport: { width: 560, height: 640 } },
+  { name: 'hidpi', cam: '38,36,4.9', viewport: { width: 1280, height: 800 }, dpr: 2 },
 ];
 
 // mulberry32, so every run builds the same patrons, bottles and textures
@@ -45,8 +49,17 @@ afterAll(async () => {
   server?.stop(true);
 });
 
-async function render(view: (typeof VIEWS)[number]) {
-  const ctx = await browser.newContext({ viewport: view.viewport ?? { width: 1280, height: 800 } });
+interface View {
+  name: string;
+  cam: string;
+  viewport?: { width: number; height: number };
+  dpr?: number;
+}
+async function render(view: View) {
+  const ctx = await browser.newContext({
+    viewport: view.viewport ?? { width: 1280, height: 800 },
+    deviceScaleFactor: view.dpr ?? 1,
+  });
   // paused from the start: frames only advance inside runFor, however long loading takes
   await ctx.clock.install({ time: 0 });
   await ctx.clock.pauseAt(1_000);

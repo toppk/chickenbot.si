@@ -20,7 +20,7 @@ import {
   wsUrl,
 } from '../../brain/link.ts';
 import { brain } from '../../brain/local-brain.ts';
-import { resize } from '../../render/post.ts';
+import { RH, SCALE, resize } from '../../render/post.ts';
 import { lofi, setLofi } from '../../audio/lofi.ts';
 import { W, type WinId, check, ibtn, makeWin, rowIn, slider, toggleWin, winsEl } from './window.ts';
 import { ftAvg, tris } from '../../main.ts';
@@ -110,21 +110,23 @@ export function initDebug() {
     ),
   );
   sb.appendChild(Object.assign(document.createElement('div'), { className: 'sep' }));
-  slider(
-    sb,
-    'd-pix',
-    'Pixel Size',
-    1,
-    6,
-    () => state.PIX,
-    (v) => {
-      const n = Math.round(v);
-      if (n !== state.PIX) {
-        state.PIX = n;
-        resize();
-      }
-    },
-    (v) => String(Math.round(v)),
+  dbgRenders.push(
+    slider(
+      sb,
+      'd-rows',
+      'Art Rows',
+      120,
+      480,
+      () => state.artRows,
+      (v) => {
+        const n = Math.round(v);
+        if (n !== state.artRows) {
+          state.artRows = n;
+          resize();
+        }
+      },
+      (v) => `${Math.round(v)} · ${SCALE}x · ${RH}`,
+    ),
   );
   {
     const r = rowIn(sb);

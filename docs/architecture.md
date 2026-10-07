@@ -55,6 +55,15 @@ Each frame, with `dt` capped at 50 ms:
 3. UI: speech bubbles follow heads, the face redraws, lofi levels update. The HUD refreshes when
    marked dirty or every 0.25 s, the debug stats every 0.25 s.
 
+## Pixel scale
+
+The scene is rendered small and scaled up by a whole number of device pixels, so every art pixel
+is square and the same size. `state.artRows` (default 240, "Art Rows" in the stats window) is the
+target height in art pixels; `resize()` in `render/post.ts` rounds `device height / artRows` to the
+nearest whole scale. A phone, a laptop and a 4K monitor therefore all show roughly 220–240 rows.
+The canvas is sized in device pixels, so high-DPI screens get crisp pixels rather than a browser
+upscale. The post shader picks each art pixel from `gl_FragCoord / scale`.
+
 ## three.js compatibility
 
 The scene was built and lit on three r128. `render/three-compat.ts`, imported by `renderer.ts` and
@@ -68,8 +77,8 @@ The scene was built and lit on three r128. `render/three-compat.ts`, imported by
 ## Shared state
 
 ES module imports are read-only bindings, so the handful of values written from more than one
-module live in `core/state.ts`: `doorSwing`, `music`, `lightLevel`, `faceFlash`, `PIX` (pixel
-size), `moodFlash`, `autoOrbit`, `idleT`, `wireEl` and `wireState`. Everything else is owned by one module and
+module live in `core/state.ts`: `doorSwing`, `music`, `lightLevel`, `faceFlash`, `artRows`
+(target art height), `moodFlash`, `autoOrbit`, `idleT`, `wireEl` and `wireState`. Everything else is owned by one module and
 changed through that module's functions or by mutating the objects it exports (`hen`, `orders`,
 `people`, `CAM` and so on).
 
@@ -96,8 +105,8 @@ checks:
 
 CI runs it against both three.js builds.
 
-`tests/visual/visual.test.ts` renders five fixed views (`?cam=`), including phone width and the
-ceiling, after 5 s of simulated time and compares them with `tests/visual/baselines/`. To make
+`tests/visual/visual.test.ts` renders eight fixed views (`?cam=`), including phone width, the
+ceiling, an ultrawide window, a chat-panel-sized window and a 2x high-DPI screen, after 5 s of simulated time and compares them with `tests/visual/baselines/`. To make
 renders repeat exactly it seeds `Math.random`, pauses a fake clock so frames only advance inside the
 test, ties `performance.now()` and frame timestamps to the fake `Date`, and waits for VT323 (canvas
 textures redraw with random specks when it arrives). Diffs over 0.2 % of pixels fail; CI uploads

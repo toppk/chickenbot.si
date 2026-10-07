@@ -5,8 +5,8 @@ export interface State {
   lightLevel: number;
   faceFlash: number;
   moodFlash: boolean;
-  /** render pixel size */
-  PIX: number;
+  /** target height of the scene in art pixels; the pixel scale is worked out from it */
+  artRows: number;
   autoOrbit: boolean;
   /** seconds since the visitor last touched the camera */
   idleT: number;
@@ -21,7 +21,7 @@ export const state: State = {
   lightLevel: 0.8,
   faceFlash: 0,
   moodFlash: true,
-  PIX: 3,
+  artRows: 240,
   autoOrbit: true,
   idleT: 0,
   wireEl: null,
