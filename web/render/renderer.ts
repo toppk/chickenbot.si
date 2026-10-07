@@ -19,7 +19,7 @@ export function applyStageCap() {
   stage.style.maxWidth = state.maxAspect ? `${Math.round(state.maxAspect * stage.clientHeight)}px` : '';
 }
 window.addEventListener('resize', applyStageCap);
-// ?ideal=1.6&cap=1.6&rows=240&glass=0.38 set the view settings from the URL (0 = off for ideal/cap)
+// ?ideal=1.6&cap=1.6&rows=240&glass=0.38&ink=1 set the view settings from the URL (0 = off for ideal/cap/ink)
 {
   const q = new URLSearchParams(location.search);
   for (const [key, field] of [
@@ -31,5 +31,7 @@ window.addEventListener('resize', applyStageCap);
     const v = Number(q.get(key) ?? Number.NaN);
     if (Number.isFinite(v) && v >= 0 && (field !== 'artRows' || v >= 1)) state[field] = v;
   }
+  const ink = q.get('ink');
+  if (ink === '0' || ink === '1') state.inkLines = ink === '1';
   applyStageCap();
 }

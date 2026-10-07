@@ -17,19 +17,23 @@ import { HEN } from '../content/dialogue.ts';
 export const PITCH_MIN = -70,
   PITCH_MAX = 85;
 let seenCeiling = false;
-export const CAM = { yaw: 38, pitch: 36, zoom: 4.9 },
+export const CAM = { yaw: 56.5, pitch: 24, zoom: 5.78 },
   TGT = new V3(0, 0.9, 0);
-// ?cam=yaw,pitch,zoom pins the starting view and stops auto-orbit, for comparing renders
+// ?cam=yaw,pitch,zoom pins the starting view and stops auto-orbit (unless &orbit=1), for comparing renders
 {
-  const v = new URLSearchParams(location.search).get('cam')?.split(',').map(Number);
+  const q = new URLSearchParams(location.search);
+  const v = q.get('cam')?.split(',').map(Number);
   if (v?.length === 3 && v.every(Number.isFinite)) {
     [CAM.yaw, CAM.pitch, CAM.zoom] = v;
     state.autoOrbit = false;
   }
+  const orbit = q.get('orbit');
+  if (orbit === '0' || orbit === '1') state.autoOrbit = orbit === '1';
 }
 const START = {
   ...CAM,
   autoOrbit: state.autoOrbit,
+  inkLines: state.inkLines,
   idealAspect: state.idealAspect,
   maxAspect: state.maxAspect,
   artRows: state.artRows,
@@ -41,6 +45,7 @@ export function resetView() {
   CAM.pitch = START.pitch;
   CAM.zoom = START.zoom;
   state.autoOrbit = START.autoOrbit;
+  state.inkLines = START.inkLines;
   state.idealAspect = START.idealAspect;
   state.maxAspect = START.maxAspect;
   state.artRows = START.artRows;
@@ -56,6 +61,7 @@ export function viewSettings() {
   return (
     `?cam=${yaw.toFixed(1)},${CAM.pitch.toFixed(1)},${CAM.zoom.toFixed(2)}` +
     `&ideal=${state.idealAspect}&cap=${state.maxAspect}&rows=${state.artRows}&glass=${state.glassOpacity}` +
+    `&ink=${+state.inkLines}&orbit=${+state.autoOrbit}` +
     `   (stage ${VW}x${VH} @${dpr}x, aspect ${(VW / VH).toFixed(2)}, ${SCALE}x, ${RH} rows)`
   );
 }

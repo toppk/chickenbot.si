@@ -29,7 +29,6 @@ import { byId } from '../../core/dom.ts';
 import { EMOTE_NAMES, type ServerMessage } from '../../../shared/protocol.ts';
 
 // The debug windows: stats, brain (hand-fired protocol messages) and wire (link log).
-export let inkOn = true;
 /** the deployed commit, stamped into index.html by scripts/build.ts */
 const BUILD_REV = document.querySelector<HTMLMetaElement>('meta[name="revision"]')?.content ?? 'dev';
 /** Fires a protocol message as if a server had sent it. */
@@ -197,12 +196,14 @@ export function initDebug() {
   {
     const r = rowIn(sb);
     r.style.gap = '14px';
-    check(
-      r,
-      'd-ink',
-      'Ink Lines',
-      () => inkOn,
-      (v) => (inkOn = v),
+    dbgRenders.push(
+      check(
+        r,
+        'd-ink',
+        'Ink Lines',
+        () => state.inkLines,
+        (v) => (state.inkLines = v),
+      ),
     );
     dbgRenders.push(
       check(

@@ -19,16 +19,16 @@ const SIM_MS = 5_000;
 const PAUSED_AT = 1_000;
 
 const VIEWS: View[] = [
-  { name: 'default', cam: '38,36,4.9' },
+  { name: 'default', cam: '56.5,24,5.78' },
   { name: 'window-side', cam: '200,30,7' },
   { name: 'bar-closeup', cam: '120,45,3' },
   { name: 'ceiling', cam: '38,-40,5' },
-  { name: 'phone', cam: '38,36,4.9', viewport: { width: 420, height: 860 } },
+  { name: 'phone', cam: '56.5,24,5.78', viewport: { width: 420, height: 860 } },
   // the same view at other sizes: the room should keep its framing and pixel character
-  { name: 'ultrawide', cam: '38,36,4.9', viewport: { width: 2560, height: 1080 } },
-  { name: 'panel', cam: '38,36,4.9', viewport: { width: 560, height: 640 } },
-  { name: 'hidpi', cam: '38,36,4.9', viewport: { width: 1280, height: 800 }, dpr: 2 },
-  { name: 'ultrawide-capped', cam: '38,36,4.9&cap=1.6', viewport: { width: 2560, height: 1080 } },
+  { name: 'ultrawide', cam: '56.5,24,5.78', viewport: { width: 2560, height: 1080 } },
+  { name: 'panel', cam: '56.5,24,5.78', viewport: { width: 560, height: 640 } },
+  { name: 'hidpi', cam: '56.5,24,5.78', viewport: { width: 1280, height: 800 }, dpr: 2 },
+  { name: 'ultrawide-capped', cam: '56.5,24,5.78&cap=1.6', viewport: { width: 2560, height: 1080 } },
 ];
 
 // mulberry32, so every run builds the same patrons, bottles and textures

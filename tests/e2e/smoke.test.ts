@@ -10,7 +10,7 @@ const URL_UNDER_TEST = process.env.E2E_URL;
 const CSP = process.env.E2E_CSP !== '0' && !URL_UNDER_TEST;
 const IGNORED = [/blocked\.invalid/];
 const THIRD_PARTY_OK = CSP ? [] : [/^https:\/\/cdn\.jsdelivr\.net\/npm\/three@/];
-const DEFAULTS = '&ideal=1.6&cap=0&rows=346&glass=0.38';
+const DEFAULTS = '&ideal=1.6&cap=0&rows=414&glass=0.2&ink=1&orbit=1';
 
 let server: ReturnType<typeof startPreview> | undefined;
 let browser: Browser;
@@ -113,11 +113,11 @@ describe('bar page', () => {
     await page.mouse.up();
     await page.mouse.wheel(0, 300);
     await page.waitForTimeout(500);
-    await hasText(page, '#d-zoom .v', '6.');
+    await hasText(page, '#d-zoom .v', '7.');
     // Home puts the view back
     await page.keyboard.press('Home');
-    await hasText(page, '#d-zoom .v', '4.90');
-    await hasText(page, '#d-pitch .v', '36.0');
+    await hasText(page, '#d-zoom .v', '5.78');
+    await hasText(page, '#d-pitch .v', '24.0');
     // Copy Settings logs the view as URL parameters
     const logged = page.waitForEvent('console', (m) => m.text().startsWith('chickenbot settings: ?cam='));
     await page.click('text=Copy Settings');

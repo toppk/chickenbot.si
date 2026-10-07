@@ -18,7 +18,8 @@ import { brain } from './brain/local-brain.ts';
 import { normalMat, post, postCam, postScene, resize, rtColor, rtNormal } from './render/post.ts';
 import { openBar, world } from './sim/world.ts';
 import { lofiFrame } from './audio/lofi.ts';
-import { initDebug, inkOn, refreshDebug } from './ui/debug/panels.ts';
+import { initDebug, refreshDebug } from './ui/debug/panels.ts';
+import { state } from './core/state.ts';
 
 // Entry point: opens the bar, builds the debug windows and runs the frame loop.
 export let last = performance.now(),
@@ -74,7 +75,7 @@ function frame(now: number) {
     dbgT = 0;
     refreshDebug();
   }
-  post.uniforms.ink.value = inkOn ? 1 : 0;
+  post.uniforms.ink.value = state.inkLines ? 1 : 0;
   requestAnimationFrame(frame);
 }
 openBar();

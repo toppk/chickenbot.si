@@ -14,6 +14,8 @@ export interface State {
   /** widest stage aspect before the rest becomes a dark frame; 0 = no cap */
   maxAspect: number;
   autoOrbit: boolean;
+  /** the post pass's outline (ink) lines */
+  inkLines: boolean;
   /** seconds since the visitor last touched the camera */
   idleT: number;
   /** the wire debug window's log element, once built */
@@ -27,11 +29,12 @@ export const state: State = {
   lightLevel: 0.8,
   faceFlash: 0,
   moodFlash: true,
-  artRows: 346,
-  glassOpacity: 0.38,
+  artRows: 414,
+  glassOpacity: 0.2,
   idealAspect: 1.6,
   maxAspect: 0,
   autoOrbit: true,
+  inkLines: true,
   idleT: 0,
   wireEl: null,
   wireState: false,
