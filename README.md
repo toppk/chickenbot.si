@@ -67,6 +67,7 @@ the in-page local brain runs it.
 
 - [docs/architecture.md](docs/architecture.md): layers, startup, frame loop, build and tests
 - [docs/protocol.md](docs/protocol.md): the brain WebSocket messages
+- [docs/release.md](docs/release.md): CI, build output, hosting needs, open release decisions
 
 ## Module rules
 
