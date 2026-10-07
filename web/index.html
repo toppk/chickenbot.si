@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A pixel-art bar with a robot chicken bartender.">
+<title>Chickenbot's Bar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&family=VT323&display=swap">
+<link rel="stylesheet" href="./styles/base.css">
+<link rel="stylesheet" href="./styles/hud.css">
+<link rel="stylesheet" href="./styles/debug.css">
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <canvas id="view" aria-label="Pixel-art bar with a round centre counter, a robot chicken bartender, regulars, walk-in patrons and a waitress"></canvas>
+    <div id="bubbles"></div>
+    <div id="hint">DRAG TO TURN · SCROLL TO ZOOM · ` SHOWS/HIDES DEBUG</div>
+    <div id="wins"></div>
+  </div>
+  <footer id="hud">
+    <div class="cell c-pours"><div class="big" id="h-pours">0</div><div class="lab">POURS</div></div>
+    <div class="cell c-mood"><div class="mid" id="h-mood">CONTENT</div><div class="pips" id="h-pips"><i></i><i></i><i></i><i></i><i></i></div><div class="lab">MOOD</div></div>
+    <div class="cell c-orders"><div class="big" id="h-orders">0</div><div class="lab">ORDERS</div></div>
+    <div class="cell c-face"><canvas id="face" width="32" height="32" aria-label="Chickenbot's face"></canvas></div>
+    <div class="cell c-patrons"><div class="big" id="h-patrons">0</div><div class="lab">PATRONS</div></div>
+    <div class="cell c-regs"><div id="h-regs"></div><div class="lab">REGULARS</div></div>
+    <div class="cell c-chat">
+      <div id="chatlog" aria-live="polite"></div>
+      <form id="chatform"><input id="chatin" maxlength="140" placeholder="say something to chickenbot" autocomplete="off"><button id="lofibtn" type="button" aria-pressed="false" aria-label="lofi music"><i class="lamp" id="lofilamp"></i><span>LOFI</span></button><button id="linkbtn" type="button" aria-label="brain link settings"><i class="lamp sim" id="linklamp"></i><span id="linktxt">SIM</span></button></form>
+    </div>
+  </footer>
+</div>
+
+<script type="module" src="./main.js"></script>
+
+</body>
+</html>

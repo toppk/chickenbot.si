@@ -3,14 +3,17 @@ import { chromium } from 'playwright';
 import { startPreview } from '../../scripts/preview.js';
 
 const ROOT = process.env.E2E_ROOT ?? 'dist';
-// external font fetches may fail offline; anything else in the console is a bug
-const IGNORED = [/fonts\.(googleapis|gstatic)\.com/];
+// set E2E_URL to test an already-running server (e.g. `bun run dev`) instead of serving ROOT
+const URL_UNDER_TEST = process.env.E2E_URL;
+const DEAD_WS = 'ws://127.0.0.1:9';
+// external font fetches may fail offline, the retry test dials a dead port; anything else in the console is a bug
+const IGNORED = [/fonts\.(googleapis|gstatic)\.com/, /ws:\/\/127\.0\.0\.1:9/];
 
 let server;
 let browser;
 
 beforeAll(async () => {
-  server = startPreview({ root: ROOT, port: 0 });
+  if (!URL_UNDER_TEST) server = startPreview({ root: ROOT, port: 0 });
   browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 });
 
@@ -19,7 +22,7 @@ afterAll(async () => {
   server?.stop(true);
 });
 
-async function open(viewport) {
+async function open(viewport, query = '') {
   const page = await browser.newPage({ viewport });
   const errors = [];
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
@@ -30,7 +33,10 @@ async function open(viewport) {
   page.on('requestfailed', (r) => {
     if (!IGNORED.some((re) => re.test(r.url()))) errors.push(`requestfailed: ${r.url()}`);
   });
-  await page.goto(server.url.href);
+  await page.goto((URL_UNDER_TEST ?? server.url.href) + query);
+  // fail fast with the page's own errors if startup breaks
+  await page.waitForFunction(() => window.chickenbot, null, { timeout: 15_000 }).catch(() => {});
+  expect(errors).toEqual([]);
   return { page, errors };
 }
 
@@ -99,12 +105,11 @@ describe('bar page', () => {
   }, 120_000);
 
   test('phone width: debug starts folded, saved brain link retries', async () => {
-    const { page, errors } = await open({ width: 420, height: 860 });
-    await page.goto(`${server.url.href}?ws=ws://127.0.0.1:9`);
+    const { page, errors } = await open({ width: 420, height: 860 }, `?ws=${DEAD_WS}`);
     await visible(page, '#dbgmini');
     await hasText(page, '#linktxt', 'RETRY', 10_000);
     await page.waitForTimeout(1_000);
-    expect(errors.filter((e) => !e.includes('ws://127.0.0.1:9'))).toEqual([]);
+    expect(errors).toEqual([]);
     await page.close();
   }, 60_000);
 });

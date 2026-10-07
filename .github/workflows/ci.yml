@@ -14,9 +14,11 @@ jobs:
           bun-version-file: .bun-version
       - run: bun install --frozen-lockfile
       - run: bun run lint
-      - run: bun run build
       - run: bunx playwright install --with-deps chromium-headless-shell
-      - run: bun run test:e2e
+      - name: smoke test, three.js from CDN
+        run: bun run build:cdn && bun run test:e2e
+      - name: smoke test, three.js bundled (the default)
+        run: bun run build && bun run test:e2e
       - uses: actions/upload-artifact@v4
         with:
           name: dist
