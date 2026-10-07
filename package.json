@@ -12,6 +12,7 @@
     "typecheck": "tsc -p web && tsc -p .",
     "test:e2e": "bun test tests/e2e",
     "test:visual": "bun test tests/visual",
+    "test:live": "bun test tests/live",
     "check": "bun run lint && bun run typecheck && bun run build && bun run test:e2e && bun run test:visual"
   },
   "devDependencies": {

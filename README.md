@@ -15,6 +15,7 @@ bun run preview      # serve dist/ (add `-- --csp` to send the production Conten
 bun run typecheck    # tsc, strict, for web/ (browser types) and scripts/ + tests/ (Bun types)
 bun run check        # lint, typecheck, build, browser smoke test, visual regression
 nix build            # what infra deploys: dist/ from the flake (Bun 1.4.2 pinned by hash)
+LIVE_URL=https://chickenbot.si/ LIVE_REV=<commit> bun run test:live   # read-only checks of a deployment
 ```
 
 The smoke test needs a Playwright browser once: `bunx playwright install chromium-headless-shell`.

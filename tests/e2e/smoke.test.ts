@@ -1,14 +1,13 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { type Browser, chromium, type Page } from 'playwright';
+import type { Browser, Page } from 'playwright';
 import { startPreview } from '../../scripts/preview.ts';
+import { BLOCKED_WS, hasText, hidden, launch, openPage, visible } from '../browser.ts';
 
 const ROOT = process.env.E2E_ROOT ?? 'dist';
 // set E2E_URL to test an already-running server (e.g. `bun run dev`) instead of serving ROOT
 const URL_UNDER_TEST = process.env.E2E_URL;
 // production sends a self-only CSP; the CDN build loads three.js from jsDelivr, so CI tests it with E2E_CSP=0
 const CSP = process.env.E2E_CSP !== '0' && !URL_UNDER_TEST;
-const BLOCKED_WS = 'wss://blocked.invalid/brain';
-// the CSP refusal of the deliberately disallowed brain link is the one expected console error
 const IGNORED = [/blocked\.invalid/];
 const THIRD_PARTY_OK = CSP ? [] : [/^https:\/\/cdn\.jsdelivr\.net\/npm\/three@/];
 const DEFAULTS = '&ideal=1.6&cap=0&rows=346&glass=0.38';
@@ -18,7 +17,7 @@ let browser: Browser;
 
 beforeAll(async () => {
   if (!URL_UNDER_TEST) server = startPreview({ root: ROOT, port: 0, csp: CSP });
-  browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+  browser = await launch();
 });
 
 afterAll(async () => {
@@ -26,42 +25,9 @@ afterAll(async () => {
   server?.stop(true);
 });
 
-async function open(
-  viewport: { width: number; height: number },
-  query = '',
-  base = URL_UNDER_TEST ?? server!.url.href,
-) {
-  const page = await browser.newPage({ viewport });
-  const errors: string[] = [];
-  const origin = new URL(base).origin;
-  page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
-  page.on('console', (m) => {
-    if (m.type() === 'error' && !IGNORED.some((re) => re.test(m.text() + (m.location().url ?? ''))))
-      errors.push(`console: ${m.text()}`);
-  });
-  page.on('requestfailed', (r) => {
-    if (!IGNORED.some((re) => re.test(r.url()))) errors.push(`requestfailed: ${r.url()}`);
-  });
-  // the page should make no third-party requests (fonts and icons are served by the site)
-  page.on('request', (r) => {
-    const u = r.url();
-    if (!u.startsWith(origin) && !u.startsWith('data:') && !THIRD_PARTY_OK.some((re) => re.test(u)))
-      errors.push(`third-party request: ${u}`);
-  });
-  await page.goto(base + query);
-  // fail fast with the page's own errors if startup breaks
-  await page.waitForFunction(() => window.chickenbot, null, { timeout: 15_000 }).catch(() => {});
-  expect(errors).toEqual([]);
-  return { page, errors };
-}
-
+const open = (viewport: { width: number; height: number }, query = '', base = URL_UNDER_TEST ?? server!.url.href) =>
+  openPage(browser, base + query, { viewport, ignored: IGNORED, thirdPartyOk: THIRD_PARTY_OK });
 const snapshot = (page: Page) => page.evaluate(() => window.chickenbot.snapshot());
-const hasText = (page: Page, sel: string, text: string, timeout = 10_000) =>
-  page.waitForFunction(([s, t]) => document.querySelector(s)?.textContent?.includes(t), [sel, text] as const, {
-    timeout,
-  });
-const visible = (page: Page, sel: string) => page.locator(sel).waitFor({ state: 'visible', timeout: 5_000 });
-const hidden = (page: Page, sel: string) => page.locator(sel).waitFor({ state: 'hidden', timeout: 5_000 });
 
 describe('bar page', () => {
   test('desktop: visitor defaults, assets, simulation, protocol and debug UI', async () => {

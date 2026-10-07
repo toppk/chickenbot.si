@@ -20,7 +20,7 @@ Agreed in branding's `docs/chickenbot-si-launch.md` and infra's
    serves the Nix output read-only. `www.chickenbot.si` 301-redirects to the apex.
 5. Infra verifies the deployed page from outside: headers, CSP, assets, the revision, and a
    Playwright browser smoke test from foundation. The owner does visual UAT before the test phase is
-   called public.
+   called public. The maintainer can check a deployment too, with `bun run test:live` (below).
 
 **Rollback** is infra's: re-pin the previous commit and run `bin/ship`, or a NixOS rollback on ne2.
 The site has no state to migrate.
@@ -68,6 +68,25 @@ A green run uploads the bundled `dist/`. A visual failure uploads the diff image
 
 **`nix` job**: `nix build .#default` and `nix flake check` on a clean checkout.
 
+## Checking a deployment
+
+```sh
+LIVE_URL=https://chickenbot.si/ LIVE_REV=682c3b4 bun run test:live
+```
+
+`tests/live/` runs read-only browser checks against the supplied URL. It never injects a CSP: the page
+runs under the server's own policy, which is printed. The checks fail on any of these:
+
+- the CSP is missing, or doesn't limit `connect-src` (or `default-src`) to `'self'`;
+- `<meta name="revision">` isn't a clean commit hash, or doesn't match `LIVE_REV`;
+- a self-hosted font or a linked favicon fails to load;
+- the local brain doesn't answer a chat line;
+- any browser error or failed request, or any request to another origin;
+- a disallowed `?ws=` brain link (`wss://blocked.invalid/brain`, a host that can never resolve) is
+  retried, or stops the local brain.
+
+Nothing server-side changes. Unlike `E2E_URL`, it has no development WebSocket test.
+
 ## What gets served
 
 ```
@@ -112,7 +131,8 @@ local brain server, and CI tests both cases.
 3. Wait for both CI jobs to go green.
 4. Send branding the full commit hash, the CI run URL and the revision it will show (the short hash).
 5. Branding sends infra the pin request; infra deploys and verifies (the route above).
-6. Owner UAT on https://chickenbot.si before the test phase is called public.
+6. `bun run test:live` against the deployment with the expected revision, and owner UAT on
+   https://chickenbot.si before the test phase is called public.
 
 No tags or `VERSION` file per deploy; the pinned commit is the version. Revisit this if the site
 adopts numbered releases.
