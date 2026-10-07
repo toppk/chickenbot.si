@@ -20,7 +20,7 @@ jobs:
       - run: bun run typecheck
       - run: bunx playwright install --with-deps chromium-headless-shell
         timeout-minutes: 10
-      - name: smoke test, three.js from CDN (no CSP: this build loads jsDelivr)
+      - name: "smoke test, three.js from CDN (no CSP: this build loads jsDelivr)"
         run: bun run build:cdn && E2E_CSP=0 bun run test:e2e
       - name: smoke test, three.js bundled (the default), with the production CSP
         run: bun run build && bun run test:e2e
