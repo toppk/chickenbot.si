@@ -39,6 +39,8 @@ body {
   position: relative;
   overflow: hidden;
   min-height: 0;
+  width: 100%;
+  justify-self: center;
   background: var(--ink);
 }
 #view {

@@ -55,6 +55,7 @@ function makeTargets() {
   post.uniforms.tNormal.value = rtNormal.texture;
   post.uniforms.res.value.set(RW, RH);
 }
+let lastSize = '';
 export function resize() {
   VW = Math.max(2, stage.clientWidth);
   VH = Math.max(2, stage.clientHeight);
@@ -63,7 +64,12 @@ export function resize() {
     DH = Math.round(VH * dpr);
   // a whole number of device pixels per art pixel keeps every art pixel square and the same size;
   // rounding keeps the row count near the target on any screen
-  SCALE = Math.max(1, Math.round(DH / state.artRows));
+  const scale = Math.max(1, Math.round(DH / state.artRows));
+  const size = `${DW}x${DH}@${scale}`;
+  // ResizeObserver also fires once on observe; rebuilding unchanged targets would only churn GPU memory
+  if (size === lastSize) return;
+  lastSize = size;
+  SCALE = scale;
   // the canvas is sized in device pixels (pixel ratio stays 1, so point sizes stay in art pixels)
   renderer.setSize(DW, DH, false);
   RW = Math.ceil(DW / SCALE);

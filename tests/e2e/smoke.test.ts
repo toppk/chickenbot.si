@@ -101,6 +101,11 @@ describe('bar page', () => {
     await page.mouse.up();
     await page.mouse.wheel(0, 300);
     await page.waitForTimeout(500);
+    await hasText(page, '#d-zoom .v', '6.');
+    // Home puts the view back
+    await page.keyboard.press('Home');
+    await hasText(page, '#d-zoom .v', '4.90');
+    await hasText(page, '#d-pitch .v', '36.0');
 
     expect(errors).toEqual([]);
     await page.close();

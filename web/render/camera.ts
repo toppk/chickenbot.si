@@ -26,6 +26,15 @@ export const CAM = { yaw: 38, pitch: 36, zoom: 4.9 },
     state.autoOrbit = false;
   }
 }
+const START = { ...CAM, autoOrbit: state.autoOrbit };
+/** Puts zoom, yaw, pitch and auto-orbit back to how the page loaded (including ?cam=). */
+export function resetCamera() {
+  CAM.yaw = START.yaw;
+  CAM.pitch = START.pitch;
+  CAM.zoom = START.zoom;
+  state.autoOrbit = START.autoOrbit;
+  state.idleT = 0;
+}
 export function updateCam(dt: number) {
   const under = CAM.pitch < 2;
   ceiling.visible = under;
@@ -38,8 +47,10 @@ export function updateCam(dt: number) {
   }
   state.idleT += dt;
   if (state.autoOrbit && !reduce && state.idleT > 8 && !drag) CAM.yaw += dt * 3;
-  const asp = VW / VH,
-    hh = Math.max(CAM.zoom, 5.4 / asp);
+  const asp = VW / VH;
+  // show as much room as an idealAspect stage would at this zoom: wide windows zoom in, tall ones out
+  let hh = state.idealAspect ? CAM.zoom * Math.sqrt(state.idealAspect / asp) : CAM.zoom;
+  hh = Math.max(hh, 5.4 / asp);
   camera.left = -hh * asp;
   camera.right = hh * asp;
   camera.top = hh;
@@ -119,6 +130,10 @@ window.addEventListener('keydown', (e) => {
   if ((e.target as HTMLElement).tagName === 'INPUT') return;
   if (e.key === '`') {
     setDebug(!debugShown);
+    return;
+  }
+  if (e.key === 'Home') {
+    resetCamera();
     return;
   }
   if (e.key === 'ArrowLeft') {

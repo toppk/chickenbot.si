@@ -7,6 +7,10 @@ export interface State {
   moodFlash: boolean;
   /** target height of the scene in art pixels; the pixel scale is worked out from it */
   artRows: number;
+  /** stage shape whose framing every window gets at the same zoom; 0 = fixed height */
+  idealAspect: number;
+  /** widest stage aspect before the rest becomes a dark frame; 0 = no cap */
+  maxAspect: number;
   autoOrbit: boolean;
   /** seconds since the visitor last touched the camera */
   idleT: number;
@@ -22,6 +26,8 @@ export const state: State = {
   faceFlash: 0,
   moodFlash: true,
   artRows: 240,
+  idealAspect: 1.875,
+  maxAspect: 0,
   autoOrbit: true,
   idleT: 0,
   wireEl: null,

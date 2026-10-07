@@ -1,6 +1,6 @@
 import { state } from '../../core/state.ts';
-import { stage } from '../../render/renderer.ts';
-import { CAM, PITCH_MAX, PITCH_MIN } from '../../render/camera.ts';
+import { applyStageCap, stage } from '../../render/renderer.ts';
+import { CAM, PITCH_MAX, PITCH_MIN, resetCamera } from '../../render/camera.ts';
 import { JOINTS, hen } from '../../scene/hen-model.ts';
 import { liveP } from '../../scene/particles.ts';
 import { glasses } from '../../scene/glasses.ts';
@@ -20,7 +20,7 @@ import {
   wsUrl,
 } from '../../brain/link.ts';
 import { brain } from '../../brain/local-brain.ts';
-import { RH, SCALE, resize } from '../../render/post.ts';
+import { RH, SCALE, VH, VW, resize } from '../../render/post.ts';
 import { lofi, setLofi } from '../../audio/lofi.ts';
 import { W, type WinId, check, ibtn, makeWin, rowIn, slider, toggleWin, winsEl } from './window.ts';
 import { ftAvg, tris } from '../../main.ts';
@@ -69,7 +69,7 @@ export function initDebug() {
   const sb = makeWin('stats', { title: 'stats', x: 0, y: 8, w: 290, notitle: true, closable: false });
   W.stats.style.left = 'auto';
   W.stats.style.right = '8px';
-  sb.innerHTML = `<div class="statsTop"><div class="stat" id="d-ft"></div><button type="button" class="ibtn" id="d-hide" aria-label="hide debug windows">Hide</button></div><div class="stat" id="d-tri"></div><div class="stat">Num Skinning Joints: ${JOINTS}</div><div class="stat" id="d-ent"></div><div class="sep"></div><div>Camera Controls:</div><div class="dim">&nbsp; LMB + Mouse Move: Orbit</div><div class="dim">&nbsp; Mouse Wheel: Zoom</div>`;
+  sb.innerHTML = `<div class="statsTop"><div class="stat" id="d-ft"></div><button type="button" class="ibtn" id="d-hide" aria-label="hide debug windows">Hide</button></div><div class="stat" id="d-tri"></div><div class="stat">Num Skinning Joints: ${JOINTS}</div><div class="stat" id="d-ent"></div><div class="sep"></div><div>Camera Controls:</div><div class="dim">&nbsp; LMB + Mouse Move: Orbit</div><div class="dim">&nbsp; Mouse Wheel: Zoom</div><div class="dim">&nbsp; Home: Reset</div>`;
   dbgRenders.push(
     slider(
       sb,
@@ -108,6 +108,31 @@ export function initDebug() {
       (v) => (CAM.pitch = v),
       (v) => v.toFixed(1),
     ),
+  );
+  ibtn(rowIn(sb), 'Reset Camera', resetCamera).title = 'Home key';
+  // framing: the low end of Ideal Aspect and the high end of Max Aspect mean off
+  slider(
+    sb,
+    'd-ideal',
+    'Ideal Aspect',
+    0.7,
+    3,
+    () => state.idealAspect || 0.7,
+    (v) => (state.idealAspect = v < 0.75 ? 0 : Math.round(v * 40) / 40),
+    () => (state.idealAspect ? `${state.idealAspect.toFixed(3)} · now ${(VW / VH).toFixed(2)}` : 'off'),
+  );
+  slider(
+    sb,
+    'd-maxasp',
+    'Max Aspect',
+    1.2,
+    3.6,
+    () => state.maxAspect || 3.6,
+    (v) => {
+      state.maxAspect = v > 3.5 ? 0 : Math.round(v * 20) / 20;
+      applyStageCap();
+    },
+    () => (state.maxAspect ? state.maxAspect.toFixed(2) : 'off'),
   );
   sb.appendChild(Object.assign(document.createElement('div'), { className: 'sep' }));
   dbgRenders.push(

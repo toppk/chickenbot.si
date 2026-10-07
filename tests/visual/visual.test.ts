@@ -16,6 +16,7 @@ const OUTPUT = join(import.meta.dir, '__output__');
 const THRESHOLD = 0.1;
 const MAX_DIFF_RATIO = 0.002;
 const SIM_MS = 5_000;
+const PAUSED_AT = 1_000;
 
 const VIEWS: View[] = [
   { name: 'default', cam: '38,36,4.9' },
@@ -27,13 +28,17 @@ const VIEWS: View[] = [
   { name: 'ultrawide', cam: '38,36,4.9', viewport: { width: 2560, height: 1080 } },
   { name: 'panel', cam: '38,36,4.9', viewport: { width: 560, height: 640 } },
   { name: 'hidpi', cam: '38,36,4.9', viewport: { width: 1280, height: 800 }, dpr: 2 },
+  { name: 'ultrawide-capped', cam: '38,36,4.9&cap=1.6', viewport: { width: 2560, height: 1080 } },
 ];
 
 // mulberry32, so every run builds the same patrons, bottles and textures
 const SEED_RANDOM = `{let s=0x5eed;Math.random=()=>{s=(s+0x6d2b79f5)|0;let t=Math.imul(s^(s>>>15),1|s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}`;
 
-// the fake performance.now() starts 0-2 ms off depending on navigation timing; the fake Date doesn't
-const EXACT_TIME = `{const raf=window.requestAnimationFrame.bind(window);performance.now=()=>Date.now();window.requestAnimationFrame=(cb)=>raf(()=>cb(Date.now()));}`;
+// The fake clock's frames start 0-2 ms off the paused time, depending on navigation timing, which
+// shifts the first frame's dt and, now and then, which frame a countdown crosses zero on. Frames get
+// timestamps snapped to an exact 16 ms grid from the paused time instead, and performance.now()
+// follows the fake Date, which is exact.
+const EXACT_TIME = `{const raf=window.requestAnimationFrame.bind(window);const snap=(t)=>${PAUSED_AT}+16*Math.round((t-${PAUSED_AT})/16);performance.now=()=>Date.now();window.requestAnimationFrame=(cb)=>raf(()=>cb(snap(Date.now())));}`;
 
 let server: ReturnType<typeof startPreview>;
 let browser: Browser;
@@ -62,7 +67,7 @@ async function render(view: View) {
   });
   // paused from the start: frames only advance inside runFor, however long loading takes
   await ctx.clock.install({ time: 0 });
-  await ctx.clock.pauseAt(1_000);
+  await ctx.clock.pauseAt(PAUSED_AT);
   // registered after the clock so it wraps the fake timers
   await ctx.addInitScript(SEED_RANDOM + EXACT_TIME);
   const page = await ctx.newPage();

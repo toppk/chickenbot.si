@@ -25,7 +25,8 @@ After an intended visual change, refresh the baselines with `UPDATE_VISUAL=1 bun
 and commit them.
 
 `?cam=yaw,pitch,zoom` (e.g. `?cam=200,30,7`) opens the page at a fixed view with auto-orbit off,
-handy for comparing renders.
+handy for comparing renders. `?ideal=` and `?cap=` set the framing sliders the same way. In the
+debug windows, Reset Camera (or the Home key) puts the view back.
 
 ## Layout
 

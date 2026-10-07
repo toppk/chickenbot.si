@@ -64,6 +64,16 @@ nearest whole scale. A phone, a laptop and a 4K monitor therefore all show rough
 The canvas is sized in device pixels, so high-DPI screens get crisp pixels rather than a browser
 upscale. The post shader picks each art pixel from `gl_FragCoord / scale`.
 
+## Framing
+
+The camera is orthographic. At a given zoom, `updateCam()` shows as much of the room as a stage of
+shape `state.idealAspect` would (default 1.875, about a laptop window), so wide windows zoom in and
+tall ones zoom out, and a narrow phone still always fits the bar. `state.maxAspect` optionally stops
+the stage widening; the extra width becomes the page's dark frame. Both are sliders in the stats
+window ("Ideal Aspect", "Max Aspect") and URL parameters (`?ideal=`, `?cap=`; 0 = off) while the
+right values are being found. "Reset Camera" (or the Home key) restores zoom, yaw, pitch and
+auto-orbit to how the page loaded.
+
 ## three.js compatibility
 
 The scene was built and lit on three r128. `render/three-compat.ts`, imported by `renderer.ts` and
@@ -105,10 +115,11 @@ checks:
 
 CI runs it against both three.js builds.
 
-`tests/visual/visual.test.ts` renders eight fixed views (`?cam=`), including phone width, the
-ceiling, an ultrawide window, a chat-panel-sized window and a 2x high-DPI screen, after 5 s of simulated time and compares them with `tests/visual/baselines/`. To make
+`tests/visual/visual.test.ts` renders nine fixed views (`?cam=`), including phone width, the
+ceiling, an ultrawide window, a chat-panel-sized window a 2x high-DPI screen and an ultrawide with the aspect cap on, after 5 s of simulated time and compares them with `tests/visual/baselines/`. To make
 renders repeat exactly it seeds `Math.random`, pauses a fake clock so frames only advance inside the
-test, ties `performance.now()` and frame timestamps to the fake `Date`, and waits for VT323 (canvas
+test, snaps frame timestamps to an exact 16 ms grid (the fake clock's own frames start up to 2 ms
+off), ties `performance.now()` to the fake `Date`, and waits for VT323 (canvas
 textures redraw with random specks when it arrives). Diffs over 0.2 % of pixels fail; CI uploads
 the diff images.
 
