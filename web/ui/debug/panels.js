@@ -199,6 +199,10 @@ export function initDebug() {
     ),
   );
   dbgRenders.push(...moodR);
+  {
+    const r = rowIn(bb);
+    check(r, 'd-moodflash', 'flash face on mood change', () => state.moodFlash, (v) => (state.moodFlash = v));
+  }
   dbgRenders.push(
     slider(
       bb,

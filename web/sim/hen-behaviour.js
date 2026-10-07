@@ -14,6 +14,7 @@ import { brain } from '../brain/local-brain.js';
 import { clock } from './world.js';
 
 // Chickenbot's moods, choosing the next task, pouring, and per-frame animation.
+const MOOD_FLASH_S = 0.3;
 export const MOODS = {
   cheery: { comb: 0xe83a2a, glow: 0x6a1410, walk: 1.7, pour: 1.0, hud: 'CHEERY' },
   content: { comb: 0xd8302a, glow: 0x300000, walk: 1.4, pour: 1.15, hud: 'CONTENT' },
@@ -30,7 +31,7 @@ export function setMood(m, i, src) {
   hen.combMat.color.setHex(MOODS[m].comb);
   hen.combMat.emissive.setHex(MOODS[m].glow);
   if (changed) {
-    state.faceFlash = 0;
+    state.faceFlash = state.moodFlash ? MOOD_FLASH_S : 0;
     send({ type: 'event', event: 'mood', mood: m, intensity: hen.moodI, source: src || 'local' });
   }
   hud.dirty = true;
