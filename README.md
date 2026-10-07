@@ -33,11 +33,12 @@ handy for comparing renders.
 web/              the site (Bun bundles from web/index.html)
   main.ts         entry point and frame loop
   styles/         base, hud (status bar), debug (ImGui-style windows)
+  content/        the bar's data: drinks menu, moods, regulars and palettes, dialogue, chord loops
   core/           model.ts (types for people, glasses, orders, ...), helpers, and state.ts for
                   values several modules write
   render/         renderer, materials, mesh helpers, wall fade, post-process, camera
   scene/          the room, ceiling, bar, chickenbot model, people, glasses, particles
-  sim/            drinks, orders, patrons, waitress, chickenbot behaviour, world tick
+  sim/            orders, patrons, waitress, chickenbot behaviour, world tick
   ui/             speech bubbles, status bar, face, chat, debug windows
   brain/          link.ts (WebSocket brain + protocol handler), local-brain.ts (fallback)
   audio/          lofi music and sound effects
@@ -65,6 +66,10 @@ the in-page local brain runs it.
 - [docs/protocol.md](docs/protocol.md): the brain WebSocket messages
 
 ## Module rules
+
+- Content lives in `web/content/` as typed data: change the menu, a mood, a regular or a line of
+  dialogue there, not in the code that uses it. Drink, mood and emote names come from
+  `shared/protocol.ts`, so the brain protocol and the content can't drift apart.
 
 - TypeScript, strict, run directly by Bun (no compile step; `tsc` only checks). `!` marks invariants
   the types can't express, such as elements index.html always has or parts set up at load.

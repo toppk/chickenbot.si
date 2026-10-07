@@ -2,15 +2,17 @@ import { state } from '../core/state.ts';
 import { headingTo, pick, rand } from '../core/util.ts';
 import { DOOR } from '../scene/layout.ts';
 import { stools, tables } from '../scene/bar.ts';
-import { DRINKS, DRINK_KEYS, type DrinkKey } from './drinks.ts';
+import { DRINKS, DRINK_KEYS, type DrinkKey } from '../content/drinks.ts';
 import { buildGlass } from '../scene/glasses.ts';
-import { HAIR, JACKETS, PANTS, SKINS, buildPerson, people, removePerson } from '../scene/person-model.ts';
+import { buildPerson, people, removePerson } from '../scene/person-model.ts';
 import { sipLogic, walkTo } from './people.ts';
 import { makeOrder } from './orders.ts';
 import { ICONS, say } from '../ui/bubbles.ts';
 import { send } from '../brain/link.ts';
 import { clock } from './world.ts';
 import type { Look, Person, Stool, Table } from '../core/model.ts';
+import { PALETTE, REGULARS, WALKIN_NAMES } from '../content/patrons.ts';
+import { PATRON } from '../content/dialogue.ts';
 
 // Regulars, walk-ins and table groups: arriving, ordering, drinking and leaving.
 function freeStool() {
@@ -20,34 +22,6 @@ function freeStool() {
 export function bubbleOrder(p: Person, drink: DrinkKey, prefix?: string | null) {
   say(p, `${prefix ? `${prefix} ` : ''}<img src="${ICONS[drink]}" alt=""> ${DRINKS[drink].name}`, 3.2, true);
 }
-const REGULARS: { name: string; stoolIdx: number; drink: DrinkKey; look: Look }[] = [
-  {
-    name: 'Gus',
-    stoolIdx: 5,
-    drink: 'stout',
-    look: { jacket: 0x4a5a2f, skin: 0xe0b48a, pants: 0x3d2f22, hair: 0x8a8a8a, cap: 0x5a4028, beard: 0x9a9a9a },
-  },
-  {
-    name: 'Marla',
-    stoolIdx: 4,
-    drink: 'wine',
-    look: { jacket: 0x2f3a5a, skin: 0xf0c9a0, pants: 0x2b2b33, hair: 0x7a2a10, bun: true, scarf: 0xa0281c },
-  },
-  {
-    name: 'Otis',
-    stoolIdx: 6,
-    drink: 'whiskey',
-    look: {
-      jacket: 0xe8dcc0,
-      vest: 0x7a5a2a,
-      skin: 0x9a6a48,
-      pants: 0x24304a,
-      hair: 0x1a1a1a,
-      bald: true,
-      specs: true,
-    },
-  },
-];
 export const regulars: Person[] = [];
 function seatAtStool(p: Person, st: Stool) {
   st.occupant = p;
@@ -72,40 +46,27 @@ for (const r of REGULARS) {
   p.glass = g;
   regulars.push(p);
 }
-export const NAMES = [
-  'Rosa',
-  'Dev',
-  'Hank',
-  'Priya',
-  'Theo',
-  'Lena',
-  'Marco',
-  'Ines',
-  'Sully',
-  'Bea',
-  'Kofi',
-  'Nadia',
-  'Walt',
-  'Yuki',
-  'Frank',
-  'Opal',
-];
 export function randomLook(): Look {
-  const o: Look = { jacket: pick(JACKETS), skin: pick(SKINS), pants: pick(PANTS), hair: pick(HAIR) };
+  const o: Look = {
+    jacket: pick(PALETTE.jackets),
+    skin: pick(PALETTE.skins),
+    pants: pick(PALETTE.pants),
+    hair: pick(PALETTE.hair),
+  };
   const r = Math.random();
-  if (r < 0.2) o.cap = pick(JACKETS);
-  else if (r < 0.32) o.beanie = pick([0xa0281c, 0x2a4a6a, 0xc8a040]);
+  if (r < 0.2) o.cap = pick(PALETTE.jackets);
+  else if (r < 0.32) o.beanie = pick(PALETTE.beanies);
   if (Math.random() < 0.2) o.beard = o.hair;
   if (Math.random() < 0.2) o.specs = true;
   if (Math.random() < 0.2) o.ponytail = true;
-  if (Math.random() < 0.15) o.scarf = pick([0xa0281c, 0x2a6a5a, 0xd8b048]);
+  if (Math.random() < 0.15) o.scarf = pick(PALETTE.scarves);
   return o;
 }
 export function spawnWalkup(name?: string, drink?: DrinkKey | null, fromChat?: boolean): Person | null {
   const st = freeStool();
   if (!st) return null;
   const p = buildPerson({
-    name: name || pick(NAMES),
+    name: name || pick(WALKIN_NAMES),
     kind: 'walkup',
     drink: drink || pick(DRINK_KEYS),
     ...randomLook(),
@@ -137,7 +98,7 @@ export function spawnTable(n?: number): Table | null {
   const k = Math.min(n || (1 + Math.random() * tb.seats.length) | 0, tb.seats.length);
   const seats = [...tb.seats].sort(() => Math.random() - 0.5).slice(0, k);
   seats.forEach((s, i) => {
-    const p = buildPerson({ name: pick(NAMES), kind: 'table', drink: pick(DRINK_KEYS), ...randomLook() });
+    const p = buildPerson({ name: pick(WALKIN_NAMES), kind: 'table', drink: pick(DRINK_KEYS), ...randomLook() });
     p.pos.copy(DOOR);
     p.pos.x += (i - 1) * 0.3;
     s.occupant = p;
@@ -195,7 +156,7 @@ export function updatePatrons(dt: number) {
     if (p.state === 'ordering') {
       p.t! -= dt;
       if (p.t! <= 0) {
-        bubbleOrder(p, p.drink!, p.regular ? 'the usual,' : null);
+        bubbleOrder(p, p.drink!, p.regular ? PATRON.usual : null);
         makeOrder('bar', [p.drink!], p);
         p.state = 'waiting';
         p.waitSince = clock;
@@ -203,7 +164,7 @@ export function updatePatrons(dt: number) {
     }
     if (p.state === 'waiting' && clock - p.waitSince! > 28 && !p.grumbled) {
       p.grumbled = true;
-      say(p, '...any time now.', 2.5);
+      say(p, PATRON.impatient, 2.5);
     }
     if (p.state === 'drinking') {
       sipLogic(p, dt);

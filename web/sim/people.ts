@@ -1,7 +1,7 @@
 import { V3, _v, angDiff, clamp, headingTo, lerp, polar, rand } from '../core/util.ts';
 import { RING_R } from '../scene/layout.ts';
 import { K, emit, hexRGB } from '../scene/particles.ts';
-import { DRINKS } from './drinks.ts';
+import { DRINKS } from '../content/drinks.ts';
 import { clock } from './world.ts';
 import type { Person, Vec3 } from '../core/model.ts';
 

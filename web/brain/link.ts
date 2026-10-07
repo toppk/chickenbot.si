@@ -2,7 +2,7 @@ import { state } from '../core/state.ts';
 import { clamp } from '../core/util.ts';
 import { DOOR } from '../scene/layout.ts';
 import { hen } from '../scene/hen-model.ts';
-import { isDrink } from '../sim/drinks.ts';
+import { isDrink } from '../content/drinks.ts';
 import { people } from '../scene/person-model.ts';
 import { makeOrder, orders } from '../sim/orders.ts';
 import { spawnTable, spawnWalkup } from '../sim/patrons.ts';

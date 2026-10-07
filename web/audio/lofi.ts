@@ -4,22 +4,16 @@ import { wS } from '../scene/room.ts';
 import { hen } from '../scene/hen-model.ts';
 import { send } from '../brain/link.ts';
 import { byId } from '../core/dom.ts';
-import type { MoodKey } from '../sim/hen-behaviour.ts';
+import { MOODS } from '../content/moods.ts';
+import { PROGS, type MusicStyle, type Prog } from '../content/music.ts';
 
 // Lofi music generated live with Web Audio, off until asked for.
-type ProgName = 'easy' | 'jazz' | 'blue';
-/** a four-chord loop: chord names, voicings (MIDI notes) and bass roots */
-interface Prog {
-  names: string[];
-  ch: number[][];
-  root: number[];
-}
 interface Lofi {
   ctx: AudioContext | null;
   on: boolean;
   vol: number;
   bpm: number;
-  style: ProgName | '';
+  style: MusicStyle | '';
   /** when the next record-revolution pop is due */
   revNext: number;
   /** sixteenth-note counter and when the next one is due */
@@ -59,46 +53,6 @@ export const lofi = {
   pourOn: false,
 } as Lofi;
 const mtof = (m: number) => 440 * 2 ** ((m - 69) / 12);
-const PROGS: Record<ProgName, Prog> = {
-  easy: {
-    names: ['Fmaj9', 'Em7', 'Dm9', 'Cmaj9'],
-    ch: [
-      [53, 57, 60, 64, 67],
-      [52, 55, 59, 62],
-      [50, 53, 57, 60, 64],
-      [48, 52, 55, 59, 62],
-    ],
-    root: [41, 40, 38, 36],
-  },
-  jazz: {
-    names: ['Dm9', 'G13', 'Cmaj9', 'Am9'],
-    ch: [
-      [50, 53, 57, 60, 64],
-      [53, 57, 59, 64],
-      [48, 52, 55, 59, 62],
-      [45, 48, 52, 55, 59],
-    ],
-    root: [38, 43, 36, 33],
-  },
-  blue: {
-    names: ['Am9', 'Fmaj7', 'Dm9', 'Esus'],
-    ch: [
-      [45, 48, 52, 55, 59],
-      [53, 57, 60, 64],
-      [50, 53, 57, 60, 64],
-      [52, 57, 59, 62],
-    ],
-    root: [33, 41, 38, 40],
-  },
-};
-const MOOD_MUSIC: Record<MoodKey, [ProgName, number]> = {
-  cheery: ['jazz', 78],
-  content: ['easy', 72],
-  grumpy: ['blue', 70],
-  frazzled: ['jazz', 86],
-  sleepy: ['easy', 62],
-  smitten: ['jazz', 74],
-};
 function lofiInit() {
   const AC =
     window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -312,7 +266,7 @@ function lofiStep(step: number, t0: number) {
     s16 = 60 / lofi.bpm / 4,
     t = t0 + (s % 2 ? s16 * 0.2 : 0);
   if (s === 0 && (bar % 4 === 0 || !lofi.prog)) {
-    const [pk, bpm] = MOOD_MUSIC[hen.mood] || MOOD_MUSIC.content;
+    const { style: pk, bpm } = MOODS[hen.mood].music;
     lofi.prog = PROGS[pk];
     lofi.bpm = bpm;
     lofi.style = pk;

@@ -4,7 +4,7 @@ import { scene } from '../render/renderer.ts';
 import { GLASS, M, toon } from '../render/materials.ts';
 import { box, cyl, put } from '../render/mesh.ts';
 import { K, addPuddle, emit, hexRGB } from './particles.ts';
-import { DRINKS, DRINK_KEYS, type DrinkKey } from '../sim/drinks.ts';
+import { DRINKS, DRINK_KEYS, type DrinkKey } from '../content/drinks.ts';
 import type { Glass } from '../core/model.ts';
 import { send } from '../brain/link.ts';
 import { sfxClink, sfxShatter } from '../audio/sfx.ts';

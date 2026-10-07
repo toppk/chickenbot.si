@@ -3,7 +3,7 @@ import { TAU, V3, _v, _v2, angDiff, clamp, headingTo, pick, polar, rand } from '
 import { HEN_R, STATION_A, TOP } from '../scene/layout.ts';
 import { HIP, hen, legIK } from '../scene/hen-model.ts';
 import { K, emit, hexRGB } from '../scene/particles.ts';
-import { DRINKS, type DrinkKey } from './drinks.ts';
+import { DRINKS, type DrinkKey } from '../content/drinks.ts';
 import { buildGlass, glasses, liquidTop } from '../scene/glasses.ts';
 import { people } from '../scene/person-model.ts';
 import { orders } from './orders.ts';
@@ -12,33 +12,12 @@ import { hud } from '../ui/hud.ts';
 import { send } from '../brain/link.ts';
 import { brain } from '../brain/local-brain.ts';
 import { clock } from './world.ts';
-import type { MoodName } from '../../shared/protocol.ts';
+import { MOODS, isMood } from '../content/moods.ts';
+import { HEN } from '../content/dialogue.ts';
 import type { BusTask, HenTask, Order, PourTask, Person } from '../core/model.ts';
 
 // Chickenbot's moods, choosing the next task, pouring, and per-frame animation.
 const MOOD_FLASH_S = 0.3;
-export interface Mood {
-  comb: number;
-  glow: number;
-  /** walk speed along the bar */
-  walk: number;
-  /** seconds to fill a glass */
-  pour: number;
-  /** chance of dropping a finished glass */
-  spill?: number;
-  hud: string;
-}
-const MOOD_TABLE = {
-  cheery: { comb: 0xe83a2a, glow: 0x6a1410, walk: 1.7, pour: 1.0, hud: 'CHEERY' },
-  content: { comb: 0xd8302a, glow: 0x300000, walk: 1.4, pour: 1.15, hud: 'CONTENT' },
-  grumpy: { comb: 0x8a1a14, glow: 0x100000, walk: 1.15, pour: 1.4, hud: 'GRUMPY' },
-  frazzled: { comb: 0xff4a2a, glow: 0x8a1a00, walk: 2.3, pour: 0.75, spill: 0.14, hud: 'FRAZZLED' },
-  sleepy: { comb: 0x8a4a40, glow: 0x000000, walk: 0.75, pour: 1.9, hud: 'SLEEPY' },
-  smitten: { comb: 0xff6a8a, glow: 0x6a1028, walk: 1.5, pour: 1.0, hud: 'SMITTEN' },
-} satisfies Record<MoodName, Mood>;
-export type MoodKey = MoodName;
-export const MOODS: Record<MoodKey, Mood> = MOOD_TABLE;
-export const isMood = (m: unknown): m is MoodKey => typeof m === 'string' && Object.hasOwn(MOODS, m);
 export function setMood(m: string, i?: number | null, src?: 'local' | 'remote' | 'chat') {
   if (!isMood(m)) return;
   const changed = m !== hen.mood;
@@ -284,7 +263,7 @@ function finishGlass() {
       g.vel.set(Math.cos(a) * 1.6, 1.2, Math.sin(a) * 1.6);
       g.state = 'fall';
     };
-    say(h, pick(['Ah.', 'That one’s on me.', '...']), 1.6, false);
+    say(h, pick(HEN.spill), 1.6, false);
     h.state = 'spilled';
     h.t = 0;
     o.status = 'queued';
@@ -330,6 +309,6 @@ function finishGlass() {
   }
 }
 function greet(p: Person) {
-  if (p.regular) return pick([`There you go, ${p.name}.`, `${p.name}.`, `Same as always, ${p.name}.`]);
-  return pick(['Enjoy.', 'There you go.', 'Cheers.']);
+  if (p.regular) return pick(HEN.serveRegular(p.name));
+  return pick(HEN.serve);
 }

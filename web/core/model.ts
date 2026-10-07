@@ -1,7 +1,7 @@
 // The shapes of everything in the bar. Type-only: importing this adds no runtime dependency.
 import type * as THREE from 'three';
-import type { DrinkKey } from '../sim/drinks.ts';
-import type { MoodKey } from '../sim/hen-behaviour.ts';
+import type { DrinkKey } from '../content/drinks.ts';
+import type { MoodKey } from '../content/moods.ts';
 import type { EmoteName } from '../../shared/protocol.ts';
 
 export type Vec3 = THREE.Vector3;

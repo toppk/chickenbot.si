@@ -5,16 +5,18 @@ import { ambient, carLight, doorL, doorR, jukeGlow, jukeLight, pendLights, tubes
 import { tables } from '../scene/bar.ts';
 import { hen } from '../scene/hen-model.ts';
 import { K, addPuddle, emit } from '../scene/particles.ts';
-import { DRINK_KEYS } from './drinks.ts';
+import { DRINK_KEYS } from '../content/drinks.ts';
 import { buildGlass } from '../scene/glasses.ts';
 import { buildPerson, people } from '../scene/person-model.ts';
 import { makeOrder } from './orders.ts';
-import { NAMES, randomLook, spawnTable, spawnWalkup } from './patrons.ts';
+import { randomLook, spawnTable, spawnWalkup } from './patrons.ts';
 import { say } from '../ui/bubbles.ts';
 import { chatLine } from '../ui/chat.ts';
 import { connect, send, snapshot, wsUrl } from '../brain/link.ts';
 import { lofi } from '../audio/lofi.ts';
 import { LIGHT_SCALE } from '../render/three-compat.ts';
+import { WALKIN_NAMES } from '../content/patrons.ts';
+import { HEN } from '../content/dialogue.ts';
 
 // World tick (spawning, door, street, jukebox, lights) and the opening state.
 export let clock = 0,
@@ -42,7 +44,7 @@ export function openBar() {
     tb.state = 'drinking';
     tb.group = [];
     tb.seats.slice(0, 2).forEach((s) => {
-      const p = buildPerson({ name: pick(NAMES), kind: 'table', drink: pick(DRINK_KEYS), ...randomLook() });
+      const p = buildPerson({ name: pick(WALKIN_NAMES), kind: 'table', drink: pick(DRINK_KEYS), ...randomLook() });
       p.pos.copy(s.pos);
       p.heading = p.wantHeading = s.heading;
       p.seat = s;
@@ -62,7 +64,7 @@ export function openBar() {
   }
   addPuddle(-2.6, 0, 3.2, 0.35, 0xe8a020);
   chatLine('', 'doors open', 'sys');
-  setTimeout(() => say(hen, 'Evening.', 2.2), 900);
+  setTimeout(() => say(hen, HEN.opening, 2.2), 900);
   // try a saved brain link (works when this page is hosted outside the preview)
   try {
     const q = new URLSearchParams(location.search).get('ws') || localStorage.getItem('chickenbot.ws');

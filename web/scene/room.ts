@@ -6,6 +6,7 @@ import { box, cyl, plane, put, sph } from '../render/mesh.ts';
 import { type Wall, finalizeWall, makeWall } from '../render/wall-fade.ts';
 import { ROOM, WALL_H } from './layout.ts';
 import { LIGHT_SCALE } from '../render/three-compat.ts';
+import { DRINKS, MENU_SECTIONS } from '../content/drinks.ts';
 
 // The four walls with their decorations, the jukebox, pool table and lights.
 export const ambient = new THREE.AmbientLight(0x7a5a46, 0.6 * LIGHT_SCALE);
@@ -307,15 +308,13 @@ const chalkTex = ctex(128, 80, (g) => {
   g.font = '14px VT323, monospace';
   g.fillStyle = '#e8e4d4';
   g.textBaseline = 'top';
-  const L = [
-    ['ON TAP', ''],
-    ['house lager', '6'],
-    ['oatmeal stout', '7'],
-    ['', ''],
-    ['BY THE GLASS', ''],
-    ['house red', '9'],
-    ['whiskey, neat', '10'],
-  ];
+  // [left, right] per line: section titles, then each drink and its price
+  const L: [string, string][] = [];
+  MENU_SECTIONS.forEach((sec, i) => {
+    if (i) L.push(['', '']);
+    L.push([sec.title, '']);
+    for (const d of Object.values(DRINKS)) if (d.section === sec.id) L.push([d.name, String(d.price)]);
+  });
   L.forEach(([a, b], i) => {
     g.fillStyle = a === a.toUpperCase() && a ? '#f2c860' : '#e8e4d4';
     g.fillText(a, 8, 4 + i * 10.5);

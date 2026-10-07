@@ -3,6 +3,7 @@ import { pick, rand } from '../core/util.ts';
 import { hen } from '../scene/hen-model.ts';
 import { clock } from '../sim/world.ts';
 import { byId } from '../core/dom.ts';
+import { MOODS } from '../content/moods.ts';
 
 // The Doom-style 32x32 chickenbot face in the status bar.
 const faceC = byId<HTMLCanvasElement>('face'),
@@ -26,14 +27,7 @@ export function drawFace(dt: number) {
     };
   P('#1a0e07', 0, 0, 32, 32);
   P('#24140a', 0, 24, 32, 8);
-  const comb = {
-    cheery: '#e83a2a',
-    content: '#d0302a',
-    grumpy: '#8a1a14',
-    frazzled: '#ff4a2a',
-    sleepy: '#8a4a40',
-    smitten: '#ff6a8a',
-  }[m];
+  const comb = MOODS[m].face;
   P(comb, 12, 3, 3, 4);
   P(comb, 15, 2, 3, 4);
   P(comb, 18, 3, 3, 4);

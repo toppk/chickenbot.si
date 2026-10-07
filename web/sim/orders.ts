@@ -3,7 +3,7 @@ import { tables } from '../scene/bar.ts';
 import { send } from '../brain/link.ts';
 import { clock } from './world.ts';
 import type { BarOrder, Order, Person, Table, TableOrder } from '../core/model.ts';
-import type { DrinkKey } from './drinks.ts';
+import type { DrinkKey } from '../content/drinks.ts';
 
 // Drink orders queued for chickenbot, from bar stools and tables.
 export const orders: Order[] = [];

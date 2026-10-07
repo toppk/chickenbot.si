@@ -2,7 +2,7 @@ import { hen } from '../scene/hen-model.ts';
 import { people } from '../scene/person-model.ts';
 import { orders } from '../sim/orders.ts';
 import { regulars } from '../sim/patrons.ts';
-import { MOODS } from '../sim/hen-behaviour.ts';
+import { MOODS } from '../content/moods.ts';
 import { byId } from '../core/dom.ts';
 
 // The status bar along the bottom.

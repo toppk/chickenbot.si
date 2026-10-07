@@ -6,7 +6,7 @@ import { liveP } from '../../scene/particles.ts';
 import { glasses } from '../../scene/glasses.ts';
 import { people } from '../../scene/person-model.ts';
 import { orders } from '../../sim/orders.ts';
-import { MOODS, type MoodKey } from '../../sim/hen-behaviour.ts';
+import { MOODS, type MoodKey } from '../../content/moods.ts';
 import { hud } from '../hud.ts';
 import {
   appendWire,

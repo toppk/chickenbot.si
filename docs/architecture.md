@@ -14,10 +14,11 @@ Folders roughly follow who depends on whom. Lower layers don't call into higher 
 
 | folder     | what lives there |
 |------------|------------------|
+| `content/` | data only: the drinks menu (also drawn on the chalkboard), moods (look, speed, music, lines), regulars, walk-in names and clothing palettes, June, dialogue, chord loops |
 | `core/`    | maths/random helpers; `state.ts`, the few values written by several modules |
 | `render/`  | renderer and scene, materials and pixel-art textures, mesh helpers, wall fade, post-process, camera and its input |
 | `scene/`   | things in the room: layout constants, walls and furniture, ceiling, bar, the chickenbot model, people models, glasses, particles |
-| `sim/`     | what happens: drinks menu, orders, patrons, the waitress, chickenbot's behaviour, the world tick |
+| `sim/`     | what happens: orders, patrons, the waitress, chickenbot's behaviour, the world tick |
 | `ui/`      | DOM overlays: speech bubbles, status bar, face, chat, debug windows |
 | `brain/`   | the WebSocket link and protocol handler; the local fallback brain |
 | `audio/`   | lofi music and sound effects (Web Audio, off until the visitor turns it on) |

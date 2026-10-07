@@ -9,19 +9,11 @@ import { bubbleOrder } from './patrons.ts';
 import { say } from '../ui/bubbles.ts';
 import { send } from '../brain/link.ts';
 import type { TableOrder } from '../core/model.ts';
+import { JUNE } from '../content/patrons.ts';
+import { WAITRESS } from '../content/dialogue.ts';
 
 // June the waitress: takes table orders, delivers rounds and busses tables.
-const june = buildPerson({
-  name: 'June',
-  kind: 'waitress',
-  jacket: 0x1e1e22,
-  skin: 0xc89070,
-  pants: 0x1e1e22,
-  hair: 0x2a1408,
-  ponytail: true,
-  apron: true,
-  tray: true,
-});
+const june = buildPerson({ name: 'June', kind: 'waitress', ...JUNE });
 export const STATION_SPOT = polar(STATION_A, 3.08);
 june.pos.copy(STATION_SPOT);
 june.heading = june.wantHeading = headingTo(-1, 0);
@@ -89,7 +81,7 @@ export function juneTick() {
       () => {
         j.wantHeading = headingTo(waiting.pos.x - j.pos.x, waiting.pos.z - j.pos.z);
         j.writing = true;
-        say(j, 'What can I get you?', 1.8);
+        say(j, WAITRESS.takeOrder, 1.8);
         waiting.group.forEach((p, i) => {
           setTimeout(() => bubbleOrder(p, p.drink!), 500 + i * 500);
         });

@@ -58,7 +58,8 @@ Anything else is ignored.
 | `lofi`   | `on` |
 | `easter` | `what: 'ceiling'` |
 
-Drinks are `lager`, `stout`, `wine` and `whiskey` (`web/sim/drinks.ts`).
+Drinks are `lager`, `stout`, `wine` and `whiskey` (`web/content/drinks.ts`); moods are listed in
+`web/content/moods.ts`. The names themselves are defined in `shared/protocol.ts`.
 
 While no link is live, outgoing messages are only written to the wire debug window, marked as
 "would send".

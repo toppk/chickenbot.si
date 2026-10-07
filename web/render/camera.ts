@@ -10,6 +10,7 @@ import { send } from '../brain/link.ts';
 import { VH, VW } from './post.ts';
 import { debugShown, setDebug } from '../ui/debug/panels.ts';
 import { byId } from '../core/dom.ts';
+import { HEN } from '../content/dialogue.ts';
 
 // Orbit camera, wall fading, and the mouse/touch/keyboard controls.
 export const PITCH_MIN = -70,
@@ -32,7 +33,7 @@ export function updateCam(dt: number) {
   fan.rotation.y += dt * 2.2;
   if (CAM.pitch < -12 && !seenCeiling) {
     seenCeiling = true;
-    setTimeout(() => say(hen, '...are you under the floor?', 3.2), 300);
+    setTimeout(() => say(hen, HEN.underTheFloor, 3.2), 300);
     send({ type: 'event', event: 'easter', what: 'ceiling' });
   }
   state.idleT += dt;

@@ -6,10 +6,6 @@ import { box, cyl, put } from '../render/mesh.ts';
 import type { Person, PersonSpec } from '../core/model.ts';
 
 // Blocky people: building and removing patron and waitress models.
-export const JACKETS = [0x5a2a2a, 0x2f4a6a, 0x4a5a2f, 0x5a3a6a, 0x7a5a2a, 0x3a3a3a, 0x2f5a52, 0x6a4030],
-  SKINS = [0xe0b48a, 0xb97e55, 0x7a4e32, 0xf0c9a0, 0x9a6a48],
-  PANTS = [0x2b2b33, 0x3d2f22, 0x2a3a2a, 0x4a3a2a, 0x24304a],
-  HAIR = [0x2a1a10, 0x5a3a1a, 0x8a6a3a, 0x1a1a1a, 0xa0a0a0, 0x7a2a10];
 export const people: Person[] = [];
 let nextId = 1;
 export function buildPerson(o: PersonSpec): Person {

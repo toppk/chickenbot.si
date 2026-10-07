@@ -2,35 +2,18 @@ import { state } from '../core/state.ts';
 import { pick, rand } from '../core/util.ts';
 import { DOOR } from '../scene/layout.ts';
 import { hen } from '../scene/hen-model.ts';
-import { DRINKS } from '../sim/drinks.ts';
+import { DRINKS } from '../content/drinks.ts';
 import { people } from '../scene/person-model.ts';
 import { orders } from '../sim/orders.ts';
 import { regulars, spawnWalkup } from '../sim/patrons.ts';
-import { MOODS, type MoodKey, setMood } from '../sim/hen-behaviour.ts';
+import { setMood } from '../sim/hen-behaviour.ts';
+import { MOODS, type MoodKey } from '../content/moods.ts';
 import { say } from '../ui/bubbles.ts';
 import { live } from './link.ts';
 import { clock } from '../sim/world.ts';
+import { BANTER, CHAT } from '../content/dialogue.ts';
 
 // Local brain: drives mood, banter and chat replies when no server is connected.
-const LINES: Record<MoodKey, string[]> = {
-  cheery: ['Evening, all.', 'Good crowd tonight.', 'Somebody play something on that jukebox.'],
-  content: ['Mm.', 'Glasses won’t polish themselves.', 'Quiet one.'],
-  grumpy: ['Mind the bar. It’s mahogany.', 'Somebody’s paying for that glass.', 'Hm.'],
-  frazzled: ['One at a time.', 'Heard. Heard. Heard.', 'I have two wings.'],
-  sleepy: ['...', 'Last call is a state of mind.', 'zz.'],
-  smitten: ['Oh, stop.', 'You’re sweet. Still paying, though.'],
-};
-/** [regular index, line], said in order */
-const BANTER: [number, string][] = [
-  [0, 'Did you see the game?'],
-  [1, 'Don’t start, Gus.'],
-  [2, 'Technically, a chicken is a dinosaur.'],
-  [0, 'Technically, Otis, drink your drink.'],
-  [1, 'Same again, love.'],
-  [2, 'The first bar stool was patented in nineteen—'],
-  [0, 'Nobody asked.'],
-  [1, 'Leave him alone.'],
-];
 export const brain = {
   t: 0,
   chatterT: rand(8, 14),
@@ -55,7 +38,7 @@ export const brain = {
         else if (clock - this.lastRegular < 14) m = 'cheery';
         if (m !== hen.mood) {
           setMood(m, 0.4 + Math.min(0.6, q * 0.12), 'local');
-          if (Math.random() < 0.5) say(hen, pick(LINES[m]), 2.4);
+          if (Math.random() < 0.5) say(hen, pick(MOODS[m].lines), 2.4);
         }
       }
     }
@@ -65,7 +48,7 @@ export const brain = {
         const [i, t] = BANTER[this.banter % BANTER.length]!;
         this.banter++;
         say(regulars[i]!, t, 2.6);
-      } else say(hen, pick(LINES[hen.mood]), 2.4);
+      } else say(hen, pick(MOODS[hen.mood].lines), 2.4);
     }
   },
   reply(text: string, from: string) {
@@ -93,28 +76,28 @@ export const brain = {
           mine.state = 'ordering';
           mine.t = 0.3;
         }
-        line = `One ${DRINKS[drink].name}. Coming up.`;
+        line = CHAT.orderTaken(DRINKS[drink].name);
       } else {
         const p = spawnWalkup(from, drink, true);
-        line = p ? `One ${DRINKS[drink].name}. Grab a stool.` : 'Bar’s full. Give it a minute.';
+        line = p ? CHAT.orderWalkIn(DRINKS[drink].name) : CHAT.barFull;
       }
-    } else if (/\b(hi|hey|hello|evening|yo)\b/.test(t)) line = pick(['Evening.', 'What’ll it be?']);
+    } else if (/\b(hi|hey|hello|evening|yo)\b/.test(t)) line = pick(CHAT.hello);
     else if (/cute|love|good (bird|chicken|bot)|pretty|handsome/.test(t)) {
       mood = 'smitten';
-      line = pick(LINES.smitten);
+      line = pick(MOODS.smitten.lines);
     } else if (/wing|nugget|fried|kfc|drumstick/.test(t)) {
       mood = 'grumpy';
-      line = 'We don’t talk about that in here.';
-    } else if (/how are you|how’s it|mood|feeling/.test(t)) line = `Running ${MOODS[hen.mood].hud.toLowerCase()}.`;
+      line = CHAT.wings;
+    } else if (/how are you|how’s it|mood|feeling/.test(t)) line = CHAT.mood(MOODS[hen.mood].hud);
     else if (/music|song|jukebox/.test(t)) {
       state.music = !state.music;
-      line = state.music ? 'Fine. One song.' : 'Thank you.';
+      line = state.music ? CHAT.musicOn : CHAT.musicOff;
     } else if (/dance|spin/.test(t)) {
       hen.emote = 'spin';
       hen.emoteT = 1.6;
-      line = 'Once.';
-    } else if (/tab|pay|check|bill/.test(t)) line = 'No tabs.';
-    else line = pick(['Mm-hm.', 'Heard.', 'Tell it to the regulars.', 'I just pour.']);
+      line = CHAT.dance;
+    } else if (/tab|pay|check|bill/.test(t)) line = CHAT.tab;
+    else line = pick(CHAT.other);
     if (mood) {
       setMood(mood, 0.8, 'chat');
       this.override = 14;

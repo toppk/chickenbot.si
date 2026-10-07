@@ -7,7 +7,7 @@ import { send } from '../brain/link.ts';
 import { VH, VW } from '../render/post.ts';
 import { byId } from '../core/dom.ts';
 import type { Hen, Person } from '../core/model.ts';
-import type { DrinkKey } from '../sim/drinks.ts';
+import type { DrinkKey } from '../content/drinks.ts';
 
 // Speech bubbles projected over heads; lines also go to the chat log.
 type Speaker = Person | Hen;
