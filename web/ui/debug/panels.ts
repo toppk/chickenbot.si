@@ -1,6 +1,7 @@
 import { state } from '../../core/state.ts';
 import { applyStageCap, stage } from '../../render/renderer.ts';
-import { CAM, PITCH_MAX, PITCH_MIN, resetCamera, viewSettings } from '../../render/camera.ts';
+import { GLASS } from '../../render/materials.ts';
+import { CAM, PITCH_MAX, PITCH_MIN, resetView, viewSettings } from '../../render/camera.ts';
 import { JOINTS, hen } from '../../scene/hen-model.ts';
 import { liveP } from '../../scene/particles.ts';
 import { glasses } from '../../scene/glasses.ts';
@@ -111,8 +112,8 @@ export function initDebug() {
   );
   {
     const r = rowIn(sb);
-    ibtn(r, 'Reset Camera', () => {
-      resetCamera();
+    ibtn(r, 'Reset', () => {
+      resetView();
       dbgRenders.forEach((f) => {
         f();
       });
@@ -175,6 +176,20 @@ export function initDebug() {
         }
       },
       (v) => `${Math.round(v)} · ${SCALE}x · ${RH}`,
+    ),
+  );
+  dbgRenders.push(
+    slider(
+      sb,
+      'd-glass',
+      'Glass Opacity',
+      0,
+      1,
+      () => state.glassOpacity,
+      (v) => {
+        state.glassOpacity = GLASS.opacity = Math.round(v * 100) / 100;
+      },
+      (v) => v.toFixed(2),
     ),
   );
   {

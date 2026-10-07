@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import './three-compat.ts';
+import { state } from '../core/state.ts';
 
 // Toon materials, the shared palette and pixel-art canvas textures.
 const GRAD = (() => {
@@ -35,7 +36,7 @@ export const M = {
   apron: toon(0xf2efe6),
   tray: toon(0x9aa2a8),
 };
-export const GLASS = toon(0xd0eef0, { transparent: true, opacity: 0.38, side: THREE.DoubleSide });
+export const GLASS = toon(0xd0eef0, { transparent: true, opacity: state.glassOpacity, side: THREE.DoubleSide });
 export type Draw = (g: CanvasRenderingContext2D, w: number, h: number) => void;
 /** Canvas textures, redrawn once the VT323 font has loaded. */
 export const redraws: (() => void)[] = [];

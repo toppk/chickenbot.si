@@ -109,7 +109,7 @@ describe('bar page', () => {
     // Copy Settings logs the view as URL parameters
     const logged = page.waitForEvent('console', (m) => m.text().startsWith('chickenbot settings: ?cam='));
     await page.click('text=Copy Settings');
-    expect((await logged).text()).toContain('&ideal=1.875&cap=0&rows=240');
+    expect((await logged).text()).toContain('&ideal=1.875&cap=0&rows=240&glass=0.38');
 
     expect(errors).toEqual([]);
     await page.close();

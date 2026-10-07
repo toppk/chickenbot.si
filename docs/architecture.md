@@ -71,9 +71,9 @@ shape `state.idealAspect` would (default 1.875, about a laptop window), so wide 
 tall ones zoom out, and a narrow phone still always fits the bar. `state.maxAspect` optionally stops
 the stage widening; the extra width becomes the page's dark frame. Both are sliders in the stats
 window ("Ideal Aspect", "Max Aspect") and URL parameters (`?ideal=`, `?cap=`; 0 = off) while the
-right values are being found. "Reset Camera" (or the Home key) restores zoom, yaw, pitch,
-auto-orbit and both framing values to how the page loaded; "Copy Settings" copies and logs them
-(plus `rows=`) as URL parameters, with the stage size they were tuned on.
+right values are being found. "Reset" (or the Home key) restores zoom, yaw, pitch, auto-orbit,
+framing, Art Rows and Glass Opacity to how the page loaded; "Copy Settings" copies and logs the same
+values as URL parameters, with the stage size they were tuned on.
 
 ## three.js compatibility
 

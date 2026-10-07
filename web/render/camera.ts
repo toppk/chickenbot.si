@@ -7,7 +7,8 @@ import { ceiling, fan } from '../scene/ceiling.ts';
 import { hen } from '../scene/hen-model.ts';
 import { say } from '../ui/bubbles.ts';
 import { send } from '../brain/link.ts';
-import { RH, SCALE, VH, VW } from './post.ts';
+import { RH, SCALE, VH, VW, resize } from './post.ts';
+import { GLASS } from './materials.ts';
 import { debugShown, setDebug } from '../ui/debug/panels.ts';
 import { byId } from '../core/dom.ts';
 import { HEN } from '../content/dialogue.ts';
@@ -26,16 +27,26 @@ export const CAM = { yaw: 38, pitch: 36, zoom: 4.9 },
     state.autoOrbit = false;
   }
 }
-const START = { ...CAM, autoOrbit: state.autoOrbit, idealAspect: state.idealAspect, maxAspect: state.maxAspect };
-/** Puts zoom, yaw, pitch, auto-orbit and framing back to how the page loaded (including URL parameters). */
-export function resetCamera() {
+const START = {
+  ...CAM,
+  autoOrbit: state.autoOrbit,
+  idealAspect: state.idealAspect,
+  maxAspect: state.maxAspect,
+  artRows: state.artRows,
+  glassOpacity: state.glassOpacity,
+};
+/** Puts back everything viewSettings() reports, as the page loaded (including URL parameters). */
+export function resetView() {
   CAM.yaw = START.yaw;
   CAM.pitch = START.pitch;
   CAM.zoom = START.zoom;
   state.autoOrbit = START.autoOrbit;
   state.idealAspect = START.idealAspect;
   state.maxAspect = START.maxAspect;
+  state.artRows = START.artRows;
+  state.glassOpacity = GLASS.opacity = START.glassOpacity;
   applyStageCap();
+  resize();
   state.idleT = 0;
 }
 /** The current view as URL parameters, plus the stage it was tuned on. */
@@ -44,7 +55,7 @@ export function viewSettings() {
     dpr = window.devicePixelRatio || 1;
   return (
     `?cam=${yaw.toFixed(1)},${CAM.pitch.toFixed(1)},${CAM.zoom.toFixed(2)}` +
-    `&ideal=${state.idealAspect}&cap=${state.maxAspect}&rows=${state.artRows}` +
+    `&ideal=${state.idealAspect}&cap=${state.maxAspect}&rows=${state.artRows}&glass=${state.glassOpacity}` +
     `   (stage ${VW}x${VH} @${dpr}x, aspect ${(VW / VH).toFixed(2)}, ${SCALE}x, ${RH} rows)`
   );
 }
@@ -146,7 +157,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (e.key === 'Home') {
-    resetCamera();
+    resetView();
     return;
   }
   if (e.key === 'ArrowLeft') {
