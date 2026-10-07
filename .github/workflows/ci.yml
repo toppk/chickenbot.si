@@ -20,9 +20,9 @@ jobs:
       - run: bun run typecheck
       - run: bunx playwright install --with-deps chromium-headless-shell
         timeout-minutes: 10
-      - name: smoke test, three.js from CDN
-        run: bun run build:cdn && bun run test:e2e
-      - name: smoke test, three.js bundled (the default)
+      - name: smoke test, three.js from CDN (no CSP: this build loads jsDelivr)
+        run: bun run build:cdn && E2E_CSP=0 bun run test:e2e
+      - name: smoke test, three.js bundled (the default), with the production CSP
         run: bun run build && bun run test:e2e
       - name: visual regression
         run: bun run test:visual
@@ -35,3 +35,13 @@ jobs:
         with:
           name: dist
           path: dist/
+
+  # the flake infra builds and serves: catches a stale node_modules outputHash after bun.lock changes
+  nix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - run: nix build -L .#default
+      - run: nix flake check -L

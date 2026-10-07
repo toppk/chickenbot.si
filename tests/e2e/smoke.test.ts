@@ -5,15 +5,19 @@ import { startPreview } from '../../scripts/preview.ts';
 const ROOT = process.env.E2E_ROOT ?? 'dist';
 // set E2E_URL to test an already-running server (e.g. `bun run dev`) instead of serving ROOT
 const URL_UNDER_TEST = process.env.E2E_URL;
-const DEAD_WS = 'ws://127.0.0.1:9';
-// external font fetches may fail offline, the retry test dials a dead port; anything else in the console is a bug
-const IGNORED = [/fonts\.(googleapis|gstatic)\.com/, /ws:\/\/127\.0\.0\.1:9/];
+// production sends a self-only CSP; the CDN build loads three.js from jsDelivr, so CI tests it with E2E_CSP=0
+const CSP = process.env.E2E_CSP !== '0' && !URL_UNDER_TEST;
+const BLOCKED_WS = 'wss://blocked.invalid/brain';
+// the CSP refusal of the deliberately disallowed brain link is the one expected console error
+const IGNORED = [/blocked\.invalid/];
+const THIRD_PARTY_OK = CSP ? [] : [/^https:\/\/cdn\.jsdelivr\.net\/npm\/three@/];
+const DEFAULTS = '&ideal=1.6&cap=0&rows=346&glass=0.38';
 
 let server: ReturnType<typeof startPreview> | undefined;
 let browser: Browser;
 
 beforeAll(async () => {
-  if (!URL_UNDER_TEST) server = startPreview({ root: ROOT, port: 0 });
+  if (!URL_UNDER_TEST) server = startPreview({ root: ROOT, port: 0, csp: CSP });
   browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 });
 
@@ -22,9 +26,14 @@ afterAll(async () => {
   server?.stop(true);
 });
 
-async function open(viewport: { width: number; height: number }, query = '') {
+async function open(
+  viewport: { width: number; height: number },
+  query = '',
+  base = URL_UNDER_TEST ?? server!.url.href,
+) {
   const page = await browser.newPage({ viewport });
   const errors: string[] = [];
+  const origin = new URL(base).origin;
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   page.on('console', (m) => {
     if (m.type() === 'error' && !IGNORED.some((re) => re.test(m.text() + (m.location().url ?? ''))))
@@ -33,7 +42,13 @@ async function open(viewport: { width: number; height: number }, query = '') {
   page.on('requestfailed', (r) => {
     if (!IGNORED.some((re) => re.test(r.url()))) errors.push(`requestfailed: ${r.url()}`);
   });
-  await page.goto((URL_UNDER_TEST ?? server!.url.href) + query);
+  // the page should make no third-party requests (fonts and icons are served by the site)
+  page.on('request', (r) => {
+    const u = r.url();
+    if (!u.startsWith(origin) && !u.startsWith('data:') && !THIRD_PARTY_OK.some((re) => re.test(u)))
+      errors.push(`third-party request: ${u}`);
+  });
+  await page.goto(base + query);
   // fail fast with the page's own errors if startup breaks
   await page.waitForFunction(() => window.chickenbot, null, { timeout: 15_000 }).catch(() => {});
   expect(errors).toEqual([]);
@@ -49,8 +64,37 @@ const visible = (page: Page, sel: string) => page.locator(sel).waitFor({ state: 
 const hidden = (page: Page, sel: string) => page.locator(sel).waitFor({ state: 'hidden', timeout: 5_000 });
 
 describe('bar page', () => {
-  test('desktop: loads, runs frames, serves drinks, drives the protocol and debug UI', async () => {
+  test('desktop: visitor defaults, assets, simulation, protocol and debug UI', async () => {
     const { page, errors } = await open({ width: 1280, height: 800 });
+
+    // visitors start with the debug windows folded into the Show tab
+    await visible(page, '#dbgmini');
+    await hidden(page, 'section[aria-label="stats"]');
+
+    // self-hosted fonts load, the favicons are served, and the build revision is stamped
+    const fonts = await page.evaluate(() =>
+      Promise.all(
+        ['Press Start 2P', 'VT323', 'Share Tech Mono'].map(
+          async (f) => (await document.fonts.load(`12px "${f}"`, 'A')).length,
+        ),
+      ),
+    );
+    expect(fonts).toEqual([1, 1, 1]);
+    // the linked icons, plus the plain /favicon.ico copy that only builds have (the dev server falls back to index.html)
+    const iconUrls = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]')].map((l) => l.href),
+    );
+    expect(iconUrls.length).toBe(2);
+    if (!URL_UNDER_TEST) iconUrls.push(new URL('favicon.ico', page.url()).href);
+    for (const u of iconUrls) {
+      const r = await page.request.get(u);
+      expect(`${r.status()} ${r.headers()['content-type']}`).toMatch(/^200 image\//);
+    }
+    if (!URL_UNDER_TEST) {
+      const rev = await page.getAttribute('meta[name="revision"]', 'content');
+      expect(rev).toMatch(/^[0-9a-f]{7,}(-dirty)?$/);
+      await hasText(page, '#wins', `Build: ${rev}`);
+    }
 
     await page.waitForFunction(() => /Frame Time: \d/.test(document.getElementById('d-ft')?.textContent ?? ''));
     await hasText(page, '#chatlog', 'doors open');
@@ -82,7 +126,9 @@ describe('bar page', () => {
     await hasText(page, '#chatlog', 'you: a stout please');
     await hasText(page, '#chatlog', 'oatmeal stout', 5_000);
 
-    // debug windows, lofi and the brain-link button
+    // the visible Show control opens the debug windows; Hide and the backtick key fold them again
+    await page.click('#d-show');
+    await visible(page, 'section[aria-label="stats"]');
     await page.click('text=Toggle Brain');
     await page.click('text=Toggle Wire');
     await visible(page, 'section[aria-label="wire"]');
@@ -109,18 +155,68 @@ describe('bar page', () => {
     // Copy Settings logs the view as URL parameters
     const logged = page.waitForEvent('console', (m) => m.text().startsWith('chickenbot settings: ?cam='));
     await page.click('text=Copy Settings');
-    expect((await logged).text()).toContain('&ideal=1.875&cap=0&rows=240&glass=0.38');
+    expect((await logged).text()).toContain(DEFAULTS);
 
     expect(errors).toEqual([]);
     await page.close();
   }, 120_000);
 
-  test('phone width: debug starts folded, saved brain link retries', async () => {
-    const { page, errors } = await open({ width: 420, height: 860 }, `?ws=${DEAD_WS}`);
-    await visible(page, '#dbgmini');
-    await hasText(page, '#linktxt', 'RETRY', 10_000);
-    await page.waitForTimeout(1_000);
-    expect(errors).toEqual([]);
-    await page.close();
+  test.if(CSP)(
+    'phone width, production CSP: a disallowed brain link is tried once, then the local brain carries on',
+    async () => {
+      const { page, errors } = await open({ width: 420, height: 860 }, `?ws=${BLOCKED_WS}`);
+      const refusals: string[] = [];
+      page.on('console', (m) => {
+        if (m.text().includes('blocked.invalid')) refusals.push(m.text());
+      });
+      await visible(page, '#dbgmini');
+      await hasText(page, '#chatlog', 'brain link blocked by this site');
+      await hasText(page, '#linktxt', 'SIM');
+      // the old behaviour retried after 2 s, 4 s, 8 s ...: nothing more may happen
+      await page.waitForTimeout(7_000);
+      expect(refusals).toEqual([]);
+      expect(await page.evaluate(() => localStorage.getItem('chickenbot.ws'))).toBeNull();
+      await page.click('#d-show');
+      await page.click('#linkbtn');
+      await hasText(page, 'section[aria-label="wire"]', 'was blocked. The local brain is running the bar.');
+      // the local brain still answers
+      await page.fill('#chatin', 'hello');
+      await page.press('#chatin', 'Enter');
+      await hasText(page, '#chatlog', 'CHICKENBOT:', 5_000);
+      expect(errors).toEqual([]);
+      await page.close();
+    },
+    60_000,
+  );
+
+  test('development, no CSP: the bar links up to a local brain server', async () => {
+    const seen: string[] = [];
+    const brain = Bun.serve({
+      port: 0,
+      fetch: (req, srv) => (srv.upgrade(req) ? undefined : new Response('brain', { status: 426 })),
+      websocket: {
+        message(ws, msg) {
+          const m = JSON.parse(String(msg));
+          seen.push(m.type);
+          if (m.type === 'hello') ws.send(JSON.stringify({ type: 'say', text: 'Brain online.' }));
+        },
+      },
+    });
+    const dev = URL_UNDER_TEST ? undefined : startPreview({ root: ROOT, port: 0 });
+    try {
+      const { page, errors } = await open(
+        { width: 1280, height: 800 },
+        `?ws=ws://127.0.0.1:${brain.port}`,
+        URL_UNDER_TEST ?? dev!.url.href,
+      );
+      await hasText(page, '#linktxt', 'LIVE');
+      await hasText(page, '#chatlog', 'CHICKENBOT: Brain online.');
+      expect(seen.slice(0, 2)).toEqual(['hello', 'state']);
+      expect(errors).toEqual([]);
+      await page.close();
+    } finally {
+      dev?.stop(true);
+      brain.stop(true);
+    }
   }, 60_000);
 });

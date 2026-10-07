@@ -1,3 +1,5 @@
+// fonts first, so the canvas textures' redraw on VT323 load has a font to wait for
+import './ui/fonts.ts';
 import { BG, camera, renderer, scene } from './render/renderer.ts';
 import { redraws } from './render/materials.ts';
 import { walls } from './render/wall-fade.ts';

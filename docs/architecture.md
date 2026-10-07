@@ -95,6 +95,11 @@ changed through that module's functions or by mutating the objects it exports (`
 
 ## Build
 
+- Fonts: `ui/fonts.ts` imports the `@fontsource` woff2 files and registers them with `FontFace`
+  (Bun's CSS bundler would inline them as `data:` URLs). Licences go to `dist/licenses/`.
+- `scripts/build.ts` stamps `<meta name="revision">` into `index.html` (from `$CHICKENBOT_REV`, which
+  the flake sets to the commit, else `git`), shown as "Build:" in the stats window.
+
 - `bun run dev` serves `web/index.html` through Bun's dev server.
 - `scripts/build.ts` uses `Bun.build` with `web/index.html` as the entry and writes `dist/`:
   minified, content-hashed JS and CSS, with source maps.
@@ -104,17 +109,21 @@ changed through that module's functions or by mutating the objects it exports (`
 
 ## Testing
 
-`tests/e2e/smoke.test.ts` drives the built page in headless Chromium (SwiftShader WebGL). It
-checks:
+`tests/e2e/smoke.test.ts` drives the built page in headless Chromium (SwiftShader WebGL), served with
+the production CSP (`scripts/preview.ts`). It checks:
 
-- the page loads with no console errors and frames run;
+- the page loads with no console errors, no third-party requests, and frames run;
+- visitors start with the debug windows folded; the self-hosted fonts load; the favicons are served;
+  the build revision is stamped;
 - the opening order gets poured;
-- protocol messages change the HUD, chat and patrons;
+- protocol messages change the status bar, chat and patrons;
 - chat reaches the local brain;
-- the debug windows, lofi toggle, hide/show and camera input work;
-- at phone width the debug windows start folded and a saved brain link goes to RETRY.
+- the debug windows, lofi toggle, hide/show, camera input, Reset and Copy Settings work;
+- under the CSP, a disallowed `?ws=` brain link is tried once, never retried, reported, and the local
+  brain carries on;
+- without the CSP (development), the bar links up to a real WebSocket brain started by the test.
 
-CI runs it against both three.js builds.
+CI runs it against both three.js builds (the CDN one without the CSP, since it loads jsDelivr).
 
 `tests/visual/visual.test.ts` renders nine fixed views (`?cam=`), including phone width, the
 ceiling, an ultrawide window, a chat-panel-sized window a 2x high-DPI screen and an ultrawide with the aspect cap on, after 5 s of simulated time and compares them with `tests/visual/baselines/`. To make

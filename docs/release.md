@@ -1,145 +1,125 @@
 # Release and CI
 
-For whoever builds, ships and hosts chickenbot.si. It covers how a change gets from a commit to a
-deployable `dist/`, what CI guarantees, and what the hosting side needs to know. Deployment itself is
-not set up yet; the open decisions are at the end.
+How a commit of this repo becomes https://chickenbot.si. Three parties are involved:
 
-## The short version
+- **This repo (the site maintainer):** the page, the Nix flake that builds it, and CI.
+- **Branding (the release manager):** reviews a candidate commit and asks infra to pin it.
+- **Infra:** DNS, TLS, the NixOS host, deployment, monitoring and rollback.
 
-- The site is **static files**: `bun run build` writes `dist/` (an `index.html`, one hashed JS
-  bundle, one hashed CSS file, and a source map). There is no server-side code, routing or
-  environment config.
-- Every push and pull request runs **CI** on GitHub Actions: lint, typecheck, build, a browser smoke
-  test of two builds, and a pixel-level visual regression test. A green run uploads `dist/` as an
-  artifact.
-- Dependencies follow a **14-day supply-chain cooldown**: nothing newer than 14 days is installed,
-  and CI actions are pinned to commit SHAs.
+Agreed in branding's `docs/chickenbot-si-launch.md` and infra's
+`sysadm/requests/2026-10-07-chickenbot-static-test-response.md`.
 
-## Repository
+## The route
 
-| | |
+1. A change lands on `master` and **CI goes green** (below). CI builds and checks; it never deploys
+   and holds no host credentials.
+2. The maintainer sends branding the **full commit hash** and the **green CI run**.
+3. Branding reviews them and sends infra a **pin request**.
+4. Infra pins that commit of this flake, builds `packages.x86_64-linux.default` (the site's `dist/`)
+   on its own machines, and serves it from **ne2**: haproxy terminates TLS, and a loopback nginx
+   serves the Nix output read-only. `www.chickenbot.si` 301-redirects to the apex.
+5. Infra verifies the deployed page from outside: headers, CSP, assets, the revision, and a
+   Playwright browser smoke test from foundation. The owner does visual UAT before the test phase is
+   called public.
+
+**Rollback** is infra's: re-pin the previous commit and run `bin/ship`, or a NixOS rollback on ne2.
+The site has no state to migrate.
+
+CI artifacts (the uploaded `dist/`) are for inspection only. They expire and need a token, so the
+deployed bits always come from `nix build` of the pinned commit.
+
+## The Nix build
+
+`flake.nix` (nixpkgs `nixos-26.05`, locked to the same commit infra's hosts use):
+
+| Output | What it is |
 |---|---|
-| Repo | https://github.com/toppk/chickenbot.si (public) |
-| Branch | `master`, the only branch; changes are committed straight to it |
-| Toolchain | [Bun](https://bun.sh), version in `.bun-version` (1.4.2); CI installs exactly that |
-| Language | strict TypeScript, run and bundled by Bun; `tsc` only typechecks |
-| Runtime deps | `three` (0.186). Everything else in `package.json` is build/test tooling |
+| `packages.x86_64-linux.default` | the built `dist/`: what infra serves |
+| `packages.x86_64-linux.nodeModules` | runtime dependencies (three.js, the fonts), a fixed-output derivation from the frozen `bun.lock` |
+| `packages.x86_64-linux.bun` | Bun **1.4.2**, the release zip pinned by hash (matches Bun's published SHA-256), not nixpkgs' bun |
+| `checks.x86_64-linux.site` | fails unless `dist/` has the fonts, favicon, licences and the revision stamp, and no Google Fonts |
 
-## Commands
-
-```sh
-bun install --frozen-lockfile   # exact versions from bun.lock
-bun run build                   # dist/, three.js bundled in (the default)
-bun run build:cdn               # dist/, three.js from jsDelivr (pinned + integrity-checked)
-bun run preview                 # serve dist/ at http://localhost:3000 (PORT=... to change)
-bun run check                   # everything CI runs, locally
-```
-
-The browser tests need Playwright's headless Chromium once per machine:
-`bunx playwright install chromium-headless-shell`.
+- The dependency step runs `bun install --frozen-lockfile --production --ignore-scripts`. Only runtime
+  dependencies are needed to build `dist/`, which also keeps the output identical on any machine.
+  **When `bun.lock` changes, update its `outputHash`.** `nix build` fails and prints the new value,
+  and CI's `nix` job catches a stale one.
+- The flake sets `CHICKENBOT_REV` to the commit's short hash (`-dirty` for an uncommitted tree).
+  The build stamps it into `index.html` as `<meta name="revision" content="…">`, and the page shows it
+  as "Build:" in the stats window. Check a deployment with
+  `curl -s https://chickenbot.si/ | grep -o '<meta name="revision"[^>]*>'`.
+- Both derivations rebuild bit-for-bit (`nix build --rebuild`).
 
 ## What CI checks
 
-`.github/workflows/ci.yml`, one job on `ubuntu-latest`, triggered by every push and pull request:
+`.github/workflows/ci.yml`, on every push and pull request. Actions are pinned to commit SHAs.
+
+**`check` job**:
 
 | Step | Fails when |
 |---|---|
 | `bun install --frozen-lockfile` | `bun.lock` doesn't match `package.json` |
-| `bun run lint` | any Biome error **or warning** (format or lint) |
-| `bun run typecheck` | any TypeScript error (`web/` with browser types; `scripts/` and `tests/` with Bun's) |
-| Playwright browser install | apt or download problems (10 min timeout) |
-| Smoke test, CDN build | the page logs an error, frames don't run, or the scripted checks fail (below) |
-| Smoke test, bundled build | same, against the default build |
-| Visual regression | any of 9 fixed views differs from its reference image by more than 0.2% of pixels |
+| `bun run lint` | any Biome error or warning |
+| `bun run typecheck` | any TypeScript error |
+| smoke test, CDN build | the page breaks (served without CSP, since this build loads jsDelivr) |
+| smoke test, bundled build | the page breaks under the **production CSP**: console errors, third-party requests, failed assets, the visitor defaults, the blocked-brain-link fallback (see `docs/architecture.md`) |
+| visual regression | any of 9 fixed views differs from its committed reference image by more than 0.2% of pixels |
 
-The smoke test (`tests/e2e/`) drives the built page in headless Chromium. It checks that the page
-loads with no console errors, that frames run, and that the opening drink order gets poured. It sends
-protocol messages and checks the status bar, chat and patrons react, and checks that chat reaches the
-local brain. It exercises the debug windows, the lofi toggle, camera input, Reset and Copy Settings.
-At phone width it checks the debug windows start folded and that a saved brain link shows RETRY.
+A green run uploads the bundled `dist/`. A visual failure uploads the diff images.
 
-The visual test (`tests/visual/`) seeds `Math.random` and runs a fake clock, so every render is
-exactly repeatable on any machine. It covers laptop, phone, ultrawide, chat-panel and 2x high-DPI
-sizes, and the under-the-floor view. The reference images are committed in
-`tests/visual/baselines/`. When a change is meant to look different, its commit regenerates them
-(`UPDATE_VISUAL=1 bun run test:visual`), so a visual change always shows up in the diff.
+**`nix` job**: `nix build .#default` and `nix flake check` on a clean checkout.
 
-**Artifacts.** A green run uploads `dist` (the **bundled** build, since it's built last). A failed
-run uploads `visual-diffs` (actual and diff images) when the visual test is what failed. The job has
-a 20-minute timeout; a normal run takes about a minute.
-
-## Dependencies and supply chain
-
-- `bunfig.toml` sets `minimumReleaseAge` to 14 days. `bun install`, `bun add` and `bun update` will
-  not pick any package version, transitive ones included, published less than 14 days ago.
-- `package.json` uses caret ranges; `bun.lock` records the exact versions, and CI installs with
-  `--frozen-lockfile`.
-- GitHub Actions are pinned to full commit SHAs of releases at least 14 days old, with the version
-  in a comment. Nothing updates them automatically; Dependabot with a 14-day cooldown is an option.
-- The CDN build loads three.js from jsDelivr with an import map that carries **SRI hashes** computed
-  from the npm copies of `three.module.js` and `three.core.js`. The browser refuses a CDN file that
-  doesn't match.
-
-## What gets deployed
+## What gets served
 
 ```
-dist/
-  index.html                 2.2 KB   no-cache
-  chunk-<hash>.js          ~620 KB    ~165 KB gzipped; content-hashed, cache forever
-  chunk-<hash>.css          ~9 KB     content-hashed, cache forever
-  chunk-<hash>.js.map       ~3 MB     source map (optional to deploy, see below)
+index.html                    no-cache; carries <meta name="revision">
+chunk-<hash>.js / .css        immutable, long cache (~165 KB gzipped JS)
+chunk-<hash>.js.map           source map, kept for diagnosing rendering issues
+*-<hash>.woff2                the fonts, 9 subsets; browsers fetch only the ones they need
+favicon-<hash>.ico / .png     linked from index.html
+favicon.ico                   unhashed copy for clients that ask for /favicon.ico
+licenses/                     OFL notices for the fonts, MIT for three.js
 ```
 
-- **Relative paths.** `index.html` references `./chunk-…`, so the site works at a domain root or
-  under a sub-path.
-- **Caching.** Hashed `chunk-*` files never change content, so serve them with
-  `Cache-Control: public, max-age=31536000, immutable`. Serve `index.html` with `no-cache` so
-  new builds are picked up.
-- **MIME types.** `.js` must be served as `text/javascript` (it's an ES module), and `.map` as
-  `application/json`.
-- **Compression.** gzip or brotli for `.js`, `.css` and `.html`.
-- **No routing.** There's one page and no client-side routes; anything other than the files above
-  can be a 404.
+- **Paths are relative**, so the site also works under a sub-path. Only `index.html`, `favicon.ico`
+  and `licenses/*` have fixed names; everything else is content-hashed.
+- **JavaScript** must be served as `text/javascript` (ES module). Compress text assets.
+- **No third-party requests.** Fonts and icons are served by the site.
+- **CSP**: the page works under a self-only policy. This is the one tested in CI (`PRODUCTION_CSP` in
+  `scripts/preview.ts`; `bun run preview -- --csp` serves it locally):
 
-### External requests made by the page
+  ```
+  default-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none';
+  base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  ```
 
-| To | Why | When |
-|---|---|---|
-| `fonts.googleapis.com`, `fonts.gstatic.com` | the three web fonts | always |
-| `cdn.jsdelivr.net` | three.js | CDN build only |
-| a `ws://` / `wss://` brain server | live brain link | only with `?ws=…` or a URL saved in the wire debug window |
+  `data:` images are the drink icons drawn into speech bubbles. `connect-src 'self'` deliberately
+  blocks remote brain links (below).
 
-For a Content-Security-Policy, roughly:
+## The brain link
 
-- `default-src 'self'`
-- `style-src 'self' https://fonts.googleapis.com`
-- `font-src https://fonts.gstatic.com`
-- `img-src 'self' data:` (the drink icons are data URLs)
-- `connect-src` should list the brain server's `wss://` origin once there is one
+The page runs its own local brain. A remote brain is a later, separately reviewed service; its
+address is reserved as `wss://chickenbot.si/brain`, and there is no backend, route or port for it now.
+Under the production CSP, a `?ws=` URL or a saved URL for any other origin is tried once. The browser
+refuses it, and the bar stops (no retry loop), forgets a saved URL, says so in the chat and the wire
+debug window, and keeps the local brain running. Development without the CSP can still link to a
+local brain server, and CI tests both cases.
 
-The CDN build adds an inline `<script type="importmap">`, which needs its hash in `script-src`
-(plus `https://cdn.jsdelivr.net`). The bundled build has no inline script.
+## First release procedure
 
-### The brain server
+1. Finish the change set: fonts, favicon, hidden debug windows, brain-link fallback, flake, revision,
+   visual defaults and their baselines.
+2. Run `bun run check` and `nix build && nix flake check` locally. Commit and push to `master`.
+3. Wait for both CI jobs to go green.
+4. Send branding the full commit hash, the CI run URL and the revision it will show (the short hash).
+5. Branding sends infra the pin request; infra deploys and verifies (the route above).
+6. Owner UAT on https://chickenbot.si before the test phase is called public.
 
-The page works on its own: a built-in "local brain" runs the bar. A real brain is a separate
-WebSocket server (not built yet; `server/` is reserved for it), reached with `?ws=wss://host/path`.
-On an HTTPS site it has to be `wss://`, usually behind the same TLS reverse proxy. The messages are
-in [protocol.md](protocol.md), with the types in `shared/protocol.ts`.
+No tags or `VERSION` file per deploy; the pinned commit is the version. Revisit this if the site
+adopts numbered releases.
 
-## Not decided yet
+## Still open
 
-1. **Bundled or CDN build for the test site.** The bundled build has no third-party script
-   dependency; the CDN build shares jsDelivr's cache. CI tests both.
-2. **Debug windows for visitors.** The ImGui-style debug windows are open by default on desktop
-   (the backtick key toggles them). For a public site they should probably start hidden.
-3. **Source maps.** The repo is public, so deploying the `.map` is harmless and helps debugging. To
-   leave it out, delete it from `dist/`, or build with `sourcemap: 'none'` in `scripts/build.ts`.
-4. **Versioning.** There are no tags, version number or changelog yet, and the page doesn't show
-   which commit it was built from. A tag per deploy, and the commit SHA stamped into the page, would
-   make "what's on the test site" answerable.
-5. **The deploy job.** CI produces the artifact; nothing ships it yet. A deploy job (on tag or on
-   green `master`) would sit after the existing steps and needs credentials for the host.
-6. **Visual-tuning defaults.** Framing, Art Rows and glass opacity defaults are still being tuned
-   (see the README's `?cam=` notes). Expect a commit that changes them and regenerates the reference
-   images.
+- **The CDN build** stays a checked alternative. Deploying it would need jsDelivr and an import-map
+  hash in the CSP.
+- **Dependency and action updates** are manual, under the 14-day cooldown. Dependabot with a 14-day
+  cooldown is an option.

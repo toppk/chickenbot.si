@@ -15,6 +15,10 @@ window fires inbound messages through `handle` by hand.
 - On open the bar sends `hello`, then a `state` snapshot.
 - When the socket closes the bar retries after 2, 4, 8, 16, then every 30 s; "Local" in
   the wire window stops retrying and forgets the URL.
+- The production site sends `connect-src 'self'`, so only its own `wss://chickenbot.si/brain` (reserved;
+  nothing serves it yet) can connect. Any other URL is refused by the browser: the bar sees the CSP
+  violation, stops (no retries), forgets the URL if it was the saved one, says so in the chat and the
+  wire window, and leaves the local brain running. Development without the CSP can link anywhere.
 - A server frame can hold one message object or an array of them. Frames that fail to parse are
   logged and dropped.
 

@@ -30,6 +30,8 @@ import { EMOTE_NAMES, type ServerMessage } from '../../../shared/protocol.ts';
 
 // The debug windows: stats, brain (hand-fired protocol messages) and wire (link log).
 export let inkOn = true;
+/** the deployed commit, stamped into index.html by scripts/build.ts */
+const BUILD_REV = document.querySelector<HTMLMetaElement>('meta[name="revision"]')?.content ?? 'dev';
 /** Fires a protocol message as if a server had sent it. */
 function dbg(m: ServerMessage) {
   wireLog('dbg', m);
@@ -70,7 +72,7 @@ export function initDebug() {
   const sb = makeWin('stats', { title: 'stats', x: 0, y: 8, w: 290, notitle: true, closable: false });
   W.stats.style.left = 'auto';
   W.stats.style.right = '8px';
-  sb.innerHTML = `<div class="statsTop"><div class="stat" id="d-ft"></div><button type="button" class="ibtn" id="d-hide" aria-label="hide debug windows">Hide</button></div><div class="stat" id="d-tri"></div><div class="stat">Num Skinning Joints: ${JOINTS}</div><div class="stat" id="d-ent"></div><div class="sep"></div><div>Camera Controls:</div><div class="dim">&nbsp; LMB + Mouse Move: Orbit</div><div class="dim">&nbsp; Mouse Wheel: Zoom</div><div class="dim">&nbsp; Home: Reset</div>`;
+  sb.innerHTML = `<div class="statsTop"><div class="stat" id="d-ft"></div><button type="button" class="ibtn" id="d-hide" aria-label="hide debug windows">Hide</button></div><div class="stat" id="d-tri"></div><div class="stat">Num Skinning Joints: ${JOINTS}</div><div class="stat">Build: ${BUILD_REV}</div><div class="stat" id="d-ent"></div><div class="sep"></div><div>Camera Controls:</div><div class="dim">&nbsp; LMB + Mouse Move: Orbit</div><div class="dim">&nbsp; Mouse Wheel: Zoom</div><div class="dim">&nbsp; Home: Reset</div>`;
   dbgRenders.push(
     slider(
       sb,
@@ -421,14 +423,15 @@ export function initDebug() {
   mini.hidden = true;
   mini.setAttribute('aria-label', 'debug');
   mini.innerHTML =
-    '<span class="stat" id="d-mini-ft"></span><button type="button" class="ibtn" id="d-show">Show</button>';
+    '<span class="stat" id="d-mini-ft"></span><button type="button" class="ibtn" id="d-show" aria-label="show debug windows">Show</button>';
   stage.appendChild(mini);
   byId('d-hide').addEventListener('click', () => setDebug(false));
   byId('d-show').addEventListener('click', () => setDebug(true));
   dMini = byId('d-mini-ft');
   requestAnimationFrame(placeBrain);
   if (document.fonts?.ready) document.fonts.ready.then(placeBrain);
-  if (narrowDbg) setDebug(false);
+  // visitors start with the windows folded into the small Show tab; ` or ?debug=1 opens them
+  if (new URLSearchParams(location.search).get('debug') !== '1') setDebug(false);
   dFt = byId('d-ft');
   dTri = byId('d-tri');
   dEnt = byId('d-ent');

@@ -1,8 +1,8 @@
 # chickenbot.si
 
-The website for chickenbot (the bot itself is `~/workspace/chickenbot`). Static for now,
-served behind the haproxy edge on the bllue.org Linodes; a small WebSocket backend may
-join it later.
+The website for chickenbot (the bot itself is `~/workspace/chickenbot`). A static site, built by
+this repo's Nix flake and served by infra at https://chickenbot.si; a WebSocket brain may join it
+later (`wss://chickenbot.si/brain` is reserved). See [docs/release.md](docs/release.md).
 
 ## Running locally
 
@@ -11,9 +11,10 @@ bun install
 bun run dev          # http://localhost:3000 with hot reload, straight from web/
 bun run build        # dist/: the deployable static site, three.js bundled
 bun run build:cdn    # same, but three.js loads from jsDelivr (same version as the lockfile, integrity-checked)
-bun run preview      # serve dist/
+bun run preview      # serve dist/ (add `-- --csp` to send the production Content-Security-Policy)
 bun run typecheck    # tsc, strict, for web/ (browser types) and scripts/ + tests/ (Bun types)
 bun run check        # lint, typecheck, build, browser smoke test, visual regression
+nix build            # what infra deploys: dist/ from the flake (Bun 1.4.2 pinned by hash)
 ```
 
 The smoke test needs a Playwright browser once: `bunx playwright install chromium-headless-shell`.
@@ -30,6 +31,9 @@ sliders the same way. In the debug windows, Reset (or the Home key) puts all of 
 Settings copies (and logs to the console) them as URL parameters plus the stage size, for sending in
 tuned defaults.
 
+The debug windows start folded into a small Show tab; the backtick key or Show opens them, and
+`?debug=1` opens them at load.
+
 ## Layout
 
 ```
@@ -42,32 +46,40 @@ web/              the site (Bun bundles from web/index.html)
   render/         renderer, materials, mesh helpers, wall fade, post-process, camera
   scene/          the room, ceiling, bar, chickenbot model, people, glasses, particles
   sim/            orders, patrons, waitress, chickenbot behaviour, world tick
-  ui/             speech bubbles, status bar, face, chat, debug windows
+  ui/             speech bubbles, status bar, face, chat, debug windows, fonts.ts (self-hosted fonts)
   brain/          link.ts (WebSocket brain + protocol handler), local-brain.ts (fallback)
   audio/          lofi music and sound effects
 shared/           protocol.ts: brain message types, for the site and the future server
-scripts/          build.ts, preview.ts (static file server)
+scripts/          build.ts, preview.ts (static file server, optional production CSP)
 tests/e2e/        headless-browser smoke test
+tests/visual/     visual regression test and its baselines
+flake.nix         the Nix build infra deploys (packages.x86_64-linux.default = dist/)
 docs/             architecture and protocol
 ```
 
 `server/` is reserved for the WebSocket brain backend.
 
 Append `?ws=ws://host:port` to the URL to point the bar at a brain server; without one
-the in-page local brain runs it.
+the in-page local brain runs it. Production's CSP only allows the site's own
+`wss://chickenbot.si/brain`; any other URL is tried once, reported, and left to the local brain.
+
+Fonts (Press Start 2P, VT323, Share Tech Mono; OFL) come from `@fontsource` packages and are served by
+the site; the build copies their licences, and three.js's, to `dist/licenses/`. The favicons in
+`web/` are copies of branding's approved Chickenbot assets (`docs/brands/chickenbot.md` there).
 
 ## Dependencies
 
 - `bunfig.toml` sets a 14-day `minimumReleaseAge`: `bun install`/`bun update` never pick a version
   published less than 14 days ago. Ranges in `package.json` are carets; `bun.lock` holds the exact versions.
 - CI actions are pinned to commit SHAs of releases at least 14 days old; bump them by hand.
-- `.bun-version` sets the Bun used in CI.
+- `.bun-version` sets the Bun used in CI; `flake.nix` pins the same release by hash.
+- After `bun.lock` changes, update `outputHash` in `flake.nix` (`nix build` prints the new value).
 
 ## Docs
 
 - [docs/architecture.md](docs/architecture.md): layers, startup, frame loop, build and tests
 - [docs/protocol.md](docs/protocol.md): the brain WebSocket messages
-- [docs/release.md](docs/release.md): CI, build output, hosting needs, open release decisions
+- [docs/release.md](docs/release.md): CI, the Nix build, how a commit reaches chickenbot.si
 
 ## Module rules
 

@@ -39,6 +39,8 @@ const net = {
   /** keep reconnecting after a close */
   want: false,
 };
+/** the brain endpoint reserved on this site; nothing serves it yet */
+export const BRAIN_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/brain`;
 export const linkLamp = byId('linklamp'),
   linkTxt = byId('linktxt'),
   wsNote = document.createElement('div'),
@@ -47,7 +49,7 @@ wsNote.className = 'dim';
 wsNote.textContent = 'Not connected. The local brain is running the bar.';
 wsUrl.className = 'iin';
 wsUrl.id = 'wsurl';
-wsUrl.placeholder = 'ws://localhost:8787';
+wsUrl.placeholder = BRAIN_URL;
 wsUrl.spellcheck = false;
 wsUrl.autocomplete = 'off';
 /** wire log direction: received, sent, would send (no link), fired from the debug window */
@@ -88,8 +90,9 @@ export function send(obj: BarMessage) {
     net.ws!.send(JSON.stringify(obj));
   } catch {}
 }
-function setLink(state: 'live' | 'off' | 'sim', note?: string) {
-  linkLamp.className = `lamp ${state}`;
+/** blocked: the page's CSP refused the URL, so the local brain carries on and nothing retries */
+function setLink(state: 'live' | 'off' | 'sim' | 'blocked', note?: string) {
+  linkLamp.className = `lamp ${state === 'blocked' ? 'off' : state}`;
   linkTxt.textContent = state === 'live' ? 'LIVE' : state === 'off' ? 'RETRY' : 'SIM';
   if (note) wsNote.textContent = note;
 }
@@ -144,6 +147,29 @@ export function connect(url: string) {
     }, wait * 1000);
   };
   ws.onerror = () => {};
+}
+// Under the production CSP (connect-src 'self') a remote URL is refused without an exception: the
+// socket just closes. Catch the violation and stop, instead of retrying a URL that can never work here.
+document.addEventListener('securitypolicyviolation', (e) => {
+  if (!net.url || !e.effectiveDirective.startsWith('connect-src') || !sameOrigin(e.blockedURI, net.url)) return;
+  const url = net.url;
+  disconnect(false);
+  try {
+    // a saved URL would hit the same block on every visit
+    if (localStorage.getItem('chickenbot.ws') === url) localStorage.removeItem('chickenbot.ws');
+  } catch {}
+  setLink(
+    'blocked',
+    `This site only allows a brain link to ${BRAIN_URL}, so ${url} was blocked. The local brain is running the bar.`,
+  );
+  chatLine('', 'brain link blocked by this site; local brain running', 'sys');
+});
+function sameOrigin(a: string, b: string) {
+  try {
+    return new URL(a).origin === new URL(b).origin;
+  } catch {
+    return false;
+  }
 }
 export function disconnect(forget?: boolean) {
   net.want = false;
