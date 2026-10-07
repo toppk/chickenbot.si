@@ -12,7 +12,8 @@ bun run dev          # http://localhost:3000 with hot reload, straight from web/
 bun run build        # dist/: the deployable static site, three.js bundled
 bun run build:cdn    # same, but three.js loads from jsDelivr (same version as the lockfile, integrity-checked)
 bun run preview      # serve dist/
-bun run check        # lint, build, browser smoke test, visual regression
+bun run typecheck    # tsc, strict, for web/ (browser types) and scripts/ + tests/ (Bun types)
+bun run check        # lint, typecheck, build, browser smoke test, visual regression
 ```
 
 The smoke test needs a Playwright browser once: `bunx playwright install chromium-headless-shell`.
@@ -30,16 +31,18 @@ handy for comparing renders.
 
 ```
 web/              the site (Bun bundles from web/index.html)
-  main.js         entry point and frame loop
+  main.ts         entry point and frame loop
   styles/         base, hud (status bar), debug (ImGui-style windows)
-  core/           helpers, and state.js for values several modules write
+  core/           model.ts (types for people, glasses, orders, ...), helpers, and state.ts for
+                  values several modules write
   render/         renderer, materials, mesh helpers, wall fade, post-process, camera
   scene/          the room, ceiling, bar, chickenbot model, people, glasses, particles
   sim/            drinks, orders, patrons, waitress, chickenbot behaviour, world tick
   ui/             speech bubbles, status bar, face, chat, debug windows
-  brain/          link.js (WebSocket brain + protocol handler), local-brain.js (fallback)
+  brain/          link.ts (WebSocket brain + protocol handler), local-brain.ts (fallback)
   audio/          lofi music and sound effects
-scripts/          build.js, preview.js (static file server)
+shared/           protocol.ts: brain message types, for the site and the future server
+scripts/          build.ts, preview.ts (static file server)
 tests/e2e/        headless-browser smoke test
 docs/             architecture and protocol
 ```
@@ -63,11 +66,13 @@ the in-page local brain runs it.
 
 ## Module rules
 
-- ES modules with explicit imports. three.js is `import * as THREE from 'three'`; `render/three-compat.js` keeps the
+- TypeScript, strict, run directly by Bun (no compile step; `tsc` only checks). `!` marks invariants
+  the types can't express, such as elements index.html always has or parts set up at load.
+- ES modules with explicit imports. three.js is `import * as THREE from 'three'`; `render/three-compat.ts` keeps the
   r128-era look (colour management off, legacy light levels and falloff).
-- Imports are read-only, so a value written from more than one module lives in `core/state.js`.
+- Imports are read-only, so a value written from more than one module lives in `core/state.ts`.
 - Modules import each other in cycles, so the order they evaluate in is not the order of the imports.
-  At the top level a module may only call scene builders (`render/`, `scene/`, as `patrons.js` does
-  to seat the regulars); any other startup work goes in an init function that `main.js` calls
+  At the top level a module may only call scene builders (`render/`, `scene/`, as `patrons.ts` does
+  to seat the regulars); any other startup work goes in an init function that `main.ts` calls
   (`openBar`, `initDebug`).
   Biome's import sorting is off for the same reason.

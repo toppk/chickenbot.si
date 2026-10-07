@@ -7,7 +7,8 @@
     "enabled": true,
     "rules": {
       "preset": "recommended",
-      "correctness": { "noInvalidGridAreas": "off" }
+      "correctness": { "noInvalidGridAreas": "off" },
+      "style": { "noNonNullAssertion": "off" }
     }
   },
   "assist": { "enabled": true, "actions": { "source": { "organizeImports": "off" } } }

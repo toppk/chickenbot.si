@@ -1,10 +1,10 @@
 # Brain protocol
 
 The bar talks to a "brain" over a WebSocket using JSON messages. With no server connected the
-in-page local brain (`web/brain/local-brain.js`) runs the bar instead. It calls the simulation
+in-page local brain (`web/brain/local-brain.ts`) runs the bar instead. It calls the simulation
 directly rather than sending these messages.
 
-The handler and the snapshot live in `web/brain/link.js`. The same entry points are exposed on
+The message types are in `shared/protocol.ts`; the handler and the snapshot live in `web/brain/link.ts`. The same entry points are exposed on
 `window.chickenbot` (`handle`, `send`, `snapshot`, `connect`, `disconnect`), and the debug "brain"
 window fires inbound messages through `handle` by hand.
 
@@ -58,7 +58,7 @@ Anything else is ignored.
 | `lofi`   | `on` |
 | `easter` | `what: 'ceiling'` |
 
-Drinks are `lager`, `stout`, `wine` and `whiskey` (`web/sim/drinks.js`).
+Drinks are `lager`, `stout`, `wine` and `whiskey` (`web/sim/drinks.ts`).
 
 While no link is live, outgoing messages are only written to the wire debug window, marked as
 "would send".

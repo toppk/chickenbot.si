@@ -3,7 +3,9 @@
 Chickenbot's Bar is one page: a three.js scene drawn at low resolution, then pixelated and
 outlined. It shows a round bar with chickenbot behind it, regulars, walk-ins, table groups and a
 waitress. Below the scene there's a status bar and chat. ImGui-style debug windows sit on top.
-There is no framework: plain ES modules, bundled by Bun.
+There is no framework: strict TypeScript ES modules, bundled by Bun. The data model (people,
+glasses, tables, orders, chickenbot) is described in `web/core/model.ts`, and the brain messages in
+`shared/protocol.ts`.
 
 ## Layers
 
@@ -12,7 +14,7 @@ Folders roughly follow who depends on whom. Lower layers don't call into higher 
 
 | folder     | what lives there |
 |------------|------------------|
-| `core/`    | maths/random helpers; `state.js`, the few values written by several modules |
+| `core/`    | maths/random helpers; `state.ts`, the few values written by several modules |
 | `render/`  | renderer and scene, materials and pixel-art textures, mesh helpers, wall fade, post-process, camera and its input |
 | `scene/`   | things in the room: layout constants, walls and furniture, ceiling, bar, the chickenbot model, people models, glasses, particles |
 | `sim/`     | what happens: drinks menu, orders, patrons, the waitress, chickenbot's behaviour, the world tick |
@@ -21,7 +23,7 @@ Folders roughly follow who depends on whom. Lower layers don't call into higher 
 | `audio/`   | lofi music and sound effects (Web Audio, off until the visitor turns it on) |
 
 Some modules call "up" a layer while the page runs. For example, glasses report a spill with
-`send()` from `brain/link.js`, and orders read the world clock. That's why the module graph has
+`send()` from `brain/link.ts`, and orders read the world clock. That's why the module graph has
 cycles. See [protocol.md](protocol.md) for the messages.
 
 ## Startup
@@ -30,18 +32,18 @@ ES modules evaluate dependencies first, and with cycles the order follows the im
 the order of the imports in any one file. So:
 
 1. Module top level only builds that module's own objects, plus scene objects through the
-   `render/` and `scene/` builders. For example, `sim/patrons.js` seats the regulars and
-   `sim/waitress.js` creates June.
-2. `main.js` runs last and does the rest in a fixed order:
-   - `openBar()` (`sim/world.js`): Rosa at the bar with an order, a table already drinking, a
+   `render/` and `scene/` builders. For example, `sim/patrons.ts` seats the regulars and
+   `sim/waitress.ts` creates June.
+2. `main.ts` runs last and does the rest in a fixed order:
+   - `openBar()` (`sim/world.ts`): Rosa at the bar with an order, a table already drinking, a
      puddle, "doors open", and reconnecting a saved brain link.
-   - `initDebug()` (`ui/debug/panels.js`): builds the stats, brain and wire windows.
+   - `initDebug()` (`ui/debug/panels.ts`): builds the stats, brain and wire windows.
    - Size the render targets, redraw canvas textures once the VT323 font loads, start the frame loop.
 
 Breaking rule 1 shows up as an error at load in the smoke test. In bundled builds it may be
 `undefined` rather than a TDZ error, because Bun hoists module bindings.
 
-## Frame loop (`main.js`)
+## Frame loop (`main.ts`)
 
 Each frame, with `dt` capped at 50 ms:
 
@@ -54,8 +56,8 @@ Each frame, with `dt` capped at 50 ms:
 
 ## three.js compatibility
 
-The scene was built and lit on three r128. `render/three-compat.js`, imported by `renderer.js` and
-`materials.js` before any material exists, keeps that look on current three:
+The scene was built and lit on three r128. `render/three-compat.ts`, imported by `renderer.ts` and
+`materials.ts` before any material exists, keeps that look on current three:
 
 - Colour management is off, so hex colours are used as-is instead of being treated as sRGB.
 - Every light intensity is multiplied by `LIGHT_SCALE` (π), undoing r155's physical-light scaling.
@@ -65,7 +67,7 @@ The scene was built and lit on three r128. `render/three-compat.js`, imported by
 ## Shared state
 
 ES module imports are read-only bindings, so the handful of values written from more than one
-module live in `core/state.js`: `doorSwing`, `music`, `lightLevel`, `faceFlash`, `PIX` (pixel
+module live in `core/state.ts`: `doorSwing`, `music`, `lightLevel`, `faceFlash`, `PIX` (pixel
 size), `moodFlash`, `autoOrbit`, `idleT`, `wireEl` and `wireState`. Everything else is owned by one module and
 changed through that module's functions or by mutating the objects it exports (`hen`, `orders`,
 `people`, `CAM` and so on).
@@ -73,7 +75,7 @@ changed through that module's functions or by mutating the objects it exports (`
 ## Build
 
 - `bun run dev` serves `web/index.html` through Bun's dev server.
-- `scripts/build.js` uses `Bun.build` with `web/index.html` as the entry and writes `dist/`:
+- `scripts/build.ts` uses `Bun.build` with `web/index.html` as the entry and writes `dist/`:
   minified, content-hashed JS and CSS, with source maps.
 - three.js comes from npm at the version in `bun.lock`. By default it's bundled. With `--three=cdn` it's left external and
   the page gets an import map to jsDelivr, with integrity hashes computed from the npm copies of `three.module.js` and `three.core.js`.
@@ -81,7 +83,7 @@ changed through that module's functions or by mutating the objects it exports (`
 
 ## Testing
 
-`tests/e2e/smoke.test.js` drives the built page in headless Chromium (SwiftShader WebGL). It
+`tests/e2e/smoke.test.ts` drives the built page in headless Chromium (SwiftShader WebGL). It
 checks:
 
 - the page loads with no console errors and frames run;
@@ -93,7 +95,7 @@ checks:
 
 CI runs it against both three.js builds.
 
-`tests/visual/visual.test.js` renders five fixed views (`?cam=`), including phone width and the
+`tests/visual/visual.test.ts` renders five fixed views (`?cam=`), including phone width and the
 ceiling, after 5 s of simulated time and compares them with `tests/visual/baselines/`. To make
 renders repeat exactly it seeds `Math.random`, pauses a fake clock so frames only advance inside the
 test, ties `performance.now()` and frame timestamps to the fake `Date`, and waits for VT323 (canvas
@@ -105,5 +107,5 @@ the diff images.
 
 - The mood-change face flash was a no-op (`setMood` set `faceFlash` to 0). It now flashes for 0.3 s;
   "flash face on mood change" in the brain debug window turns it off.
-- `local-brain.js` calls the simulation directly instead of speaking the protocol, so a server
+- `local-brain.ts` calls the simulation directly instead of speaking the protocol, so a server
   can't simply replace it yet.
