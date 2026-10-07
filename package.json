@@ -10,11 +10,14 @@
     "lint": "biome ci --error-on-warnings web scripts tests",
     "format": "biome check --write web scripts tests",
     "test:e2e": "bun test tests/e2e",
-    "check": "bun run lint && bun run build && bun run test:e2e"
+    "check": "bun run lint && bun run build && bun run test:e2e && bun run test:visual",
+    "test:visual": "bun test tests/visual"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
-    "playwright": "^1.63.0"
+    "pixelmatch": "^7.2.0",
+    "playwright": "^1.63.0",
+    "pngjs": "^7.0.0"
   },
   "dependencies": {
     "three": "^0.186.0"

@@ -16,6 +16,14 @@ export const PITCH_MIN = -70,
 let seenCeiling = false;
 export const CAM = { yaw: 38, pitch: 36, zoom: 4.9 },
   TGT = new V3(0, 0.9, 0);
+// ?cam=yaw,pitch,zoom pins the starting view and stops auto-orbit, for comparing renders
+{
+  const v = new URLSearchParams(location.search).get('cam')?.split(',').map(Number);
+  if (v?.length === 3 && v.every(Number.isFinite)) {
+    [CAM.yaw, CAM.pitch, CAM.zoom] = v;
+    state.autoOrbit = false;
+  }
+}
 export function updateCam(dt) {
   const under = CAM.pitch < 2;
   ceiling.visible = under;

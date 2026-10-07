@@ -20,6 +20,13 @@ jobs:
         run: bun run build:cdn && bun run test:e2e
       - name: smoke test, three.js bundled (the default)
         run: bun run build && bun run test:e2e
+      - name: visual regression
+        run: bun run test:visual
+      - if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: visual-diffs
+          path: tests/visual/__output__/
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist

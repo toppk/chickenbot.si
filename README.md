@@ -12,11 +12,19 @@ bun run dev          # http://localhost:3000 with hot reload, straight from web/
 bun run build        # dist/: the deployable static site, three.js bundled
 bun run build:cdn    # same, but three.js loads from jsDelivr (same version as the lockfile, integrity-checked)
 bun run preview      # serve dist/
-bun run check        # lint, build, browser smoke test
+bun run check        # lint, build, browser smoke test, visual regression
 ```
 
 The smoke test needs a Playwright browser once: `bunx playwright install chromium-headless-shell`.
 Point it at a running server with `E2E_URL=http://localhost:3000/ bun run test:e2e`.
+
+`bun run test:visual` renders fixed views (seeded random, fake clock) and compares them to
+`tests/visual/baselines/`; failures write `actual` and `diff` images to `tests/visual/__output__/`.
+After an intended visual change, refresh the baselines with `UPDATE_VISUAL=1 bun run test:visual`
+and commit them.
+
+`?cam=yaw,pitch,zoom` (e.g. `?cam=200,30,7`) opens the page at a fixed view with auto-orbit off,
+handy for comparing renders.
 
 ## Layout
 

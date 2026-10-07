@@ -93,6 +93,14 @@ checks:
 
 CI runs it against both three.js builds.
 
+`tests/visual/visual.test.js` renders five fixed views (`?cam=`), including phone width and the
+ceiling, after 5 s of simulated time and compares them with `tests/visual/baselines/`. To make
+renders repeat exactly it seeds `Math.random`, pauses a fake clock so frames only advance inside the
+test, ties `performance.now()` and frame timestamps to the fake `Date`, and waits for VT323 (canvas
+textures redraw with random specks when it arrives). Diffs over 0.2 % of pixels fail; CI uploads
+the diff images.
+
+
 ## Known quirks, kept as-is
 
 - The mood-change face flash was a no-op (`setMood` set `faceFlash` to 0). It now flashes for 0.3 s;
