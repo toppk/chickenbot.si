@@ -15,7 +15,14 @@ PORT=8080 bun start
 
 ## Layout
 
-- `public/index.html` — Chickenbot's Bar, a three.js (r128, from cdnjs) pixel-art scene
+- `public/index.html` — Chickenbot's Bar: page shell, loads three.js r128 from cdnjs
+- `public/css/` — `base` (stage, bubbles), `hud` (status bar), `debug` (ImGui-style windows)
+- `public/js/` — plain scripts sharing globals, so the order in `index.html` matters:
+  - scene: `util`, `renderer`, `room`, `bar`, `hen`, `particles`, `glasses`, `people`
+  - simulation: `patrons` (orders, regulars, waitress), `hen-behaviour`, `world`
+  - UI: `bubbles`, `hud`, `camera`, `debug`
+  - brains: `net` (WebSocket brain link + protocol), `local-brain` (fallback, chat input)
+  - `post` (pixelate + ink pass), `lofi` (Web Audio music/sfx), `main` (frame loop)
 - `server.ts` — dev server
 
 Append `?ws=ws://host:port` to the URL to point the bar at a brain server; without one

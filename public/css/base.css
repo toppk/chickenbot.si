@@ -1,0 +1,25 @@
+[hidden]{display:none!important}
+/* Layout: render on top, Doom-style status bar along the bottom; the bar room is orbited 360°, near walls dissolve. Single dark look by choice. */
+:root{
+  --ink:#120b07;
+  --wood:#3a1f12; --woodhi:#6e4126; --woodlo:#170b05; --inset:#1c0e07;
+  --brass:#d4a446; --red:#d63222; --redlo:#3d0a05;
+  --cream:#ecdcb8; --dim:#9c8a6c; --amber:#f0a020; --green:#5fae6a;
+  --px:"Press Start 2P", "Courier New", monospace;
+  --vt:"VT323", "Courier New", monospace;
+  --im:"Share Tech Mono","Consolas","Menlo",monospace;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0;background:var(--ink);color:var(--cream);overflow:hidden}
+#app{position:fixed;inset:0;display:grid;grid-template-rows:minmax(0,1fr) auto}
+#stage{position:relative;overflow:hidden;min-height:0;background:var(--ink)}
+#view{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#view.dragging{cursor:grabbing}
+#hint{position:absolute;left:16px;bottom:12px;font:8px/1.6 var(--px);color:var(--cream);opacity:.55;letter-spacing:.08em;pointer-events:none;transition:opacity 1.2s}
+#hint.gone{opacity:0}
+#bubbles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.bub{position:absolute;transform:translate(-50%,-100%);background:#f4ead2;color:#1a0f08;font:19px/1 var(--vt);padding:3px 7px 4px;border:2px solid #1a0f08;box-shadow:3px 3px 0 rgba(0,0,0,.45);white-space:nowrap;max-width:340px;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+.bub::after{content:"";position:absolute;left:calc(50% - 5px);bottom:-8px;width:8px;height:6px;background:#f4ead2;border:2px solid #1a0f08;border-top:0;border-left:0;transform:skewX(-35deg)}
+.bub.hen{background:#fff6dc;border-color:#5a1008}
+.bub img{width:24px;height:24px;image-rendering:pixelated}
+.bub b{font-weight:normal;color:#8a2412}
