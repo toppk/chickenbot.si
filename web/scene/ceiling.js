@@ -84,7 +84,7 @@ decal(
   -0.35,
 );
 // marker scrawl over Otis's stool
-const scrawl = decal(
+decal(
   1.6,
   0.4,
   ctex(64, 16, (g) => {
@@ -102,7 +102,7 @@ const scrawl = decal(
   const d = put(new THREE.Group(), 5.6, WALL_H, -2.4, ceiling);
   put(cyl(0.008, 0.008, 0.14, M.steel, 4), 0, -0.07, 0, d);
   put(cyl(0.014, 0.014, 0.08, M.brass, 6), 0, -0.16, 0, d);
-  const fl = put(box(0.06, 0.06, 0.005, toon(0xb02a20)), 0, -0.22, 0, d);
+  put(box(0.06, 0.06, 0.005, toon(0xb02a20)), 0, -0.22, 0, d);
   put(box(0.005, 0.06, 0.06, toon(0xb02a20)), 0, -0.22, 0, d);
   d.rotation.z = 0.25;
 }

@@ -70,7 +70,7 @@ export function openBar() {
       wsUrl.value = q;
       connect(q);
     }
-  } catch (e) {}
+  } catch {}
 }
 
 export function world(dt) {

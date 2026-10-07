@@ -1,4 +1,5 @@
 [hidden] {
+  /* biome-ignore lint/complexity/noImportantStyles: [hidden] must beat display rules such as .win's */
   display: none !important;
 }
 /* Layout: render on top, Doom-style status bar along the bottom; the bar room is orbited 360°, near walls dissolve. Single dark look by choice. */

@@ -28,7 +28,7 @@ june.heading = june.wantHeading = headingTo(-1, 0);
 june.speed = 1.6;
 june.state = 'idle';
 june.tray = true;
-export function juneTick(dt) {
+export function juneTick() {
   const j = june;
   if (j.state !== 'idle') return;
   const ready = orders.find((o) => o.kind === 'table' && o.status === 'ready');
@@ -90,7 +90,9 @@ export function juneTick(dt) {
         j.wantHeading = headingTo(waiting.pos.x - j.pos.x, waiting.pos.z - j.pos.z);
         j.writing = true;
         say(j, 'What can I get you?', 1.8);
-        waiting.group.forEach((p, i) => setTimeout(() => bubbleOrder(p, p.drink), 500 + i * 500));
+        waiting.group.forEach((p, i) => {
+          setTimeout(() => bubbleOrder(p, p.drink), 500 + i * 500);
+        });
         setTimeout(
           () => {
             j.writing = false;

@@ -71,7 +71,7 @@ export function buildPerson(o) {
   }
   const p = Object.assign(
     {
-      id: 'p' + nextId++,
+      id: `p${nextId++}`,
       root,
       hips,
       legs,

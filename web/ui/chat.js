@@ -8,7 +8,7 @@ export function chatLine(who, text, cls) {
   d.className = cls || '';
   const s = document.createElement('span');
   s.className = 'who';
-  s.textContent = who ? who + ': ' : '';
+  s.textContent = who ? `${who}: ` : '';
   d.appendChild(s);
   d.appendChild(document.createTextNode(text.replace(/<[^>]+>/g, '').trim()));
   const atEnd = chatlog.scrollHeight - chatlog.scrollTop - chatlog.clientHeight < 6;

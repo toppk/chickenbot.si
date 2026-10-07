@@ -7,7 +7,7 @@
     "build": "bun scripts/build.js",
     "build:cdn": "bun scripts/build.js --three=cdn",
     "preview": "bun scripts/preview.js",
-    "lint": "biome ci web scripts tests",
+    "lint": "biome ci --error-on-warnings web scripts tests",
     "format": "biome check --write web scripts tests",
     "test:e2e": "bun test tests/e2e",
     "check": "bun run lint && bun run build && bun run test:e2e"

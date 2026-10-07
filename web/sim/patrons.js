@@ -17,7 +17,7 @@ function freeStool() {
   return f.length ? pick(f) : null;
 }
 export function bubbleOrder(p, drink, prefix) {
-  say(p, `${prefix ? prefix + ' ' : ''}<img src="${ICONS[drink]}" alt=""> ${DRINKS[drink].name}`, 3.2, true);
+  say(p, `${prefix ? `${prefix} ` : ''}<img src="${ICONS[drink]}" alt=""> ${DRINKS[drink].name}`, 3.2, true);
 }
 const REGULARS = [
   {

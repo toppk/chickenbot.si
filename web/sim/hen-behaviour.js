@@ -105,11 +105,10 @@ export function updateHen(dt) {
   }
   h.heading += angDiff(h.heading, want) * Math.min(1, dt * (h.emote === 'spin' ? 40 : 12));
   h.root.rotation.y = h.heading;
-  const v = h.task && h.task.order ? vesselFor(h.task.order.drinks[h.task.order.made] || 'lager') : null;
+  const v = h.task?.order ? vesselFor(h.task.order.drinks[h.task.order.made] || 'lager') : null;
   for (const k in h.vessels) h.vessels[k].visible = false;
   if (h.state === 'pour') {
-    const gl = h.task.glass,
-      o = h.task.order;
+    const gl = h.task.glass;
     if (v) v.visible = true;
     pouring = true;
     if (v) {
@@ -168,7 +167,9 @@ export function updateHen(dt) {
   h.pelvis.position.y =
     HIP - 0.02 * amp + 0.012 * amp * Math.cos(4 * Math.PI * h.phase) + bounce - (h.mood === 'sleepy' ? 0.03 : 0);
   h.pelvis.rotation.z = 0.06 * amp * Math.sin(TAU * h.phase);
-  h.legs.forEach((l) => (l.roll.rotation.z = -h.pelvis.rotation.z));
+  h.legs.forEach((l) => {
+    l.roll.rotation.z = -h.pelvis.rotation.z;
+  });
   legIK(h.legs[0], h.phase, stride, 0.08 * amp, h.pelvis.position.y);
   legIK(h.legs[1], (h.phase + 0.5) % 1, stride, 0.08 * amp, h.pelvis.position.y);
   h.neck.position.z = 0.24 + amp * (((h.speed / 1.3) * T) / 2) * (0.5 - ((h.phase * 2) % 1));
@@ -265,7 +266,7 @@ function finishGlass() {
       g.vel.set(Math.cos(a) * 1.6, 1.2, Math.sin(a) * 1.6);
       g.state = 'fall';
     };
-    say(h, pick(['Ah.', 'That one’s on me.', '...']), 1.6, false, true);
+    say(h, pick(['Ah.', 'That one’s on me.', '...']), 1.6, false);
     h.state = 'spilled';
     h.t = 0;
     o.status = 'queued';
@@ -291,7 +292,7 @@ function finishGlass() {
     o.status = 'done';
     send({ type: 'event', event: 'served', order: o.id, patron: { id: p.id, name: p.name }, drink: gl.type });
     if (p.regular) brain.lastRegular = clock;
-    if (Math.random() < 0.35) say(h, greet(p), 1.8, false, true);
+    if (Math.random() < 0.35) say(h, greet(p), 1.8, false);
     h.state = 'idle';
     h.task = null;
   } else {

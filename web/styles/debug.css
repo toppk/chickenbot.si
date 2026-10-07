@@ -12,9 +12,6 @@
   font: 13px / 1.35 var(--im);
   color: #e4e4e4;
 }
-.win.notitle .bar {
-  display: none;
-}
 .bar {
   display: flex;
   align-items: center;
@@ -24,6 +21,9 @@
   background: #0b0b0d;
   cursor: move;
   touch-action: none;
+}
+.win.notitle .bar {
+  display: none;
 }
 .win.active .bar {
   background: #1f3a64;

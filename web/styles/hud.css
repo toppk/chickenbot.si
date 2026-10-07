@@ -83,13 +83,13 @@
   align-items: center;
   font: 20px / 1 var(--vt);
 }
-#h-regs .lamp {
+.lamp {
   width: 9px;
   height: 9px;
   background: #2a1a10;
   box-shadow: inset 1px 1px 0 #000;
 }
-#h-regs .lamp.full {
+#h-regs #h-regs .lamp.full {
   background: var(--amber);
 }
 #h-regs .lamp.want {

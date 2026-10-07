@@ -31,7 +31,7 @@ function frame(now) {
   world(dt);
   brain.tick(dt);
   updatePatrons(dt);
-  juneTick(dt);
+  juneTick();
   updateHen(dt);
   for (const p of people) animatePerson(p, dt);
   updateGlasses(dt);
@@ -43,9 +43,13 @@ function frame(now) {
   scene.overrideMaterial = normalMat;
   camera.layers.set(0);
   const hidden = walls.filter((w) => w.fade > 0.02 && w.g.visible);
-  hidden.forEach((w) => (w.g.visible = false));
+  hidden.forEach((w) => {
+    w.g.visible = false;
+  });
   renderer.render(scene, camera);
-  hidden.forEach((w) => (w.g.visible = true));
+  hidden.forEach((w) => {
+    w.g.visible = true;
+  });
   scene.overrideMaterial = null;
   camera.layers.enable(1);
   renderer.setClearColor(BG, 1);
@@ -74,9 +78,13 @@ function frame(now) {
 openBar();
 initDebug();
 resize();
-if (document.fonts && document.fonts.load)
+if (document.fonts?.load)
   document.fonts
     .load('14px VT323')
-    .then(() => redraws.forEach((f) => f()))
+    .then(() =>
+      redraws.forEach((f) => {
+        f();
+      }),
+    )
     .catch(() => {});
 requestAnimationFrame(frame);

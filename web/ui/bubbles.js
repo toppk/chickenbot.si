@@ -9,7 +9,7 @@ import { VH, VW } from '../render/post.js';
 // Speech bubbles projected over heads; lines also go to the chat log.
 const bubEl = document.getElementById('bubbles'),
   bubbles = [];
-export function say(who, html, dur, isHtml, isHen) {
+export function say(who, html, dur, isHtml) {
   for (const b of bubbles)
     if (b.who === who) {
       b.el.remove();
@@ -17,7 +17,7 @@ export function say(who, html, dur, isHtml, isHen) {
       break;
     }
   const el = document.createElement('div');
-  el.className = 'bub' + (who === hen ? ' hen' : '');
+  el.className = `bub${who === hen ? ' hen' : ''}`;
   if (isHtml) el.innerHTML = html;
   else el.textContent = html;
   bubEl.appendChild(el);
@@ -46,8 +46,8 @@ export function updateBubbles(dt) {
     _v.project(camera);
     const x = ((_v.x + 1) / 2) * VW,
       y = ((1 - _v.y) / 2) * VH;
-    b.el.style.left = x + 'px';
-    b.el.style.top = y + 'px';
+    b.el.style.left = `${x}px`;
+    b.el.style.top = `${y}px`;
     b.el.style.visibility = _v.z > 1 || x < -50 || x > VW + 50 ? 'hidden' : 'visible';
   }
 }

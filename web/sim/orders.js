@@ -8,7 +8,7 @@ export const orders = [];
 let orderSeq = 1;
 export function makeOrder(kind, drinks, who) {
   const o = {
-    id: 'o' + orderSeq++,
+    id: `o${orderSeq++}`,
     kind,
     drinks,
     who,

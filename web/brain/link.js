@@ -55,10 +55,10 @@ export function send(obj) {
   wireLog('out', obj);
   try {
     net.ws.send(JSON.stringify(obj));
-  } catch (e) {}
+  } catch {}
 }
 function setLink(state, note) {
-  linkLamp.className = 'lamp ' + state;
+  linkLamp.className = `lamp ${state}`;
   linkTxt.textContent = state === 'live' ? 'LIVE' : state === 'off' ? 'RETRY' : 'SIM';
   if (note) wsNote.textContent = note;
 }
@@ -68,19 +68,19 @@ export function connect(url) {
   net.want = true;
   try {
     localStorage.setItem('chickenbot.ws', url);
-  } catch (e) {}
+  } catch {}
   let ws;
   try {
     ws = new WebSocket(url);
-  } catch (e) {
+  } catch {
     setLink('off', 'That address is not a valid WebSocket URL.');
     return;
   }
   net.ws = ws;
-  setLink('off', 'Connecting to ' + url + ' ...');
+  setLink('off', `Connecting to ${url} ...`);
   ws.onopen = () => {
     net.retry = 0;
-    setLink('live', 'Live. ' + url + ' is driving mood, lines and orders.');
+    setLink('live', `Live. ${url} is driving mood, lines and orders.`);
     chatLine('', 'brain link up', 'sys');
     send({ type: 'hello', client: 'chickenbot-bar', v: 1 });
     send(snapshot());
@@ -89,7 +89,7 @@ export function connect(url) {
     let m;
     try {
       m = JSON.parse(e.data);
-    } catch (err) {
+    } catch {
       wireLog('in', { unparsed: String(e.data).slice(0, 200) });
       return;
     }
@@ -122,12 +122,12 @@ export function disconnect(forget) {
     net.ws = null;
     try {
       w.close();
-    } catch (e) {}
+    } catch {}
   }
   if (forget) {
     try {
       localStorage.removeItem('chickenbot.ws');
-    } catch (e) {}
+    } catch {}
     setLink('sim', 'Not connected. The local brain is running the bar.');
   }
 }
@@ -183,7 +183,7 @@ export function handle(m) {
         break;
       }
       const p = findPatron(m.to);
-      if (p && p.stool) {
+      if (p?.stool) {
         p.drink = DRINKS[m.drink] ? m.drink : p.drink;
         if (p.state !== 'waiting') {
           if (p.glass) {

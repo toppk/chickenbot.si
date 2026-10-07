@@ -9,16 +9,18 @@ export const winsEl = document.getElementById('wins'),
 export let zTop = 10;
 export function makeWin(id, { title, x, y, w, notitle, closable = true, collapsed = false }) {
   const el = document.createElement('section');
-  el.className = 'win' + (notitle ? ' notitle' : '') + (collapsed ? ' collapsed' : '');
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
-  if (w) el.style.width = w + 'px';
+  el.className = `win${notitle ? ' notitle' : ''}${collapsed ? ' collapsed' : ''}`;
+  el.style.left = `${x}px`;
+  el.style.top = `${y}px`;
+  if (w) el.style.width = `${w}px`;
   el.setAttribute('aria-label', title);
   el.innerHTML = `<div class="bar"><span class="tri" role="button" tabindex="0" aria-label="collapse"></span><span class="t">${title}</span>${closable ? '<button class="x" aria-label="close">×</button>' : ''}</div><div class="wbody"></div>`;
   winsEl.appendChild(el);
   const bar = el.querySelector('.bar');
   el.addEventListener('pointerdown', () => {
-    document.querySelectorAll('.win.active').forEach((w) => w.classList.remove('active'));
+    document.querySelectorAll('.win.active').forEach((w) => {
+      w.classList.remove('active');
+    });
     el.classList.add('active');
     el.style.zIndex = ++zTop;
   });
@@ -47,8 +49,8 @@ export function makeWin(id, { title, x, y, w, notitle, closable = true, collapse
     const ox = e.clientX - el.offsetLeft,
       oy = e.clientY - el.offsetTop;
     const mv = (ev) => {
-      el.style.left = clamp(ev.clientX - ox, -el.offsetWidth + 60, stage.clientWidth - 60) + 'px';
-      el.style.top = clamp(ev.clientY - oy, 0, stage.clientHeight - 21) + 'px';
+      el.style.left = `${clamp(ev.clientX - ox, -el.offsetWidth + 60, stage.clientWidth - 60)}px`;
+      el.style.top = `${clamp(ev.clientY - oy, 0, stage.clientHeight - 21)}px`;
     };
     const up = () => {
       bar.removeEventListener('pointermove', mv);
@@ -124,7 +126,7 @@ export function check(parent, id, label, get, set, round) {
   const b = document.createElement('button');
   b.type = 'button';
   b.id = id;
-  b.className = 'chk' + (round ? ' round' : '');
+  b.className = `chk${round ? ' round' : ''}`;
   b.innerHTML = `<span class="b"></span><span>${label}</span>`;
   const r = () => b.classList.toggle('on', !!get());
   b.addEventListener('click', () => {

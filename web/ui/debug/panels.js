@@ -54,7 +54,7 @@ export function setDebug(show) {
 }
 
 function placeBrain() {
-  if (!narrowDbg && W.stats.offsetHeight) W.brain.style.top = W.stats.offsetTop + W.stats.offsetHeight + 8 + 'px';
+  if (!narrowDbg && W.stats.offsetHeight) W.brain.style.top = `${W.stats.offsetTop + W.stats.offsetHeight + 8}px`;
 }
 
 // builds the debug windows: called once by main after every module has loaded
@@ -187,13 +187,15 @@ export function initDebug() {
   const moodR = Object.keys(MOODS).map((m) =>
     check(
       rad,
-      'd-m-' + m,
+      `d-m-${m}`,
       m,
       () => hen.mood === m,
       () => {
         brain.override = 20;
         dbg({ type: 'mood', mood: m, intensity: hen.moodI });
-        moodR.forEach((f) => f());
+        moodR.forEach((f) => {
+          f();
+        });
       },
       true,
     ),
@@ -354,7 +356,7 @@ export function initDebug() {
   document.getElementById('d-show').addEventListener('click', () => setDebug(true));
   dMini = document.getElementById('d-mini-ft');
   requestAnimationFrame(placeBrain);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeBrain);
+  if (document.fonts?.ready) document.fonts.ready.then(placeBrain);
   if (narrowDbg) setDebug(false);
   dFt = document.getElementById('d-ft');
   dTri = document.getElementById('d-tri');
@@ -371,5 +373,8 @@ export function refreshDebug() {
       : 'Lofi: off';
   dEnt.textContent = `Particles: ${liveP}  Glasses: ${glasses.length}  People: ${people.length}`;
   dMini.textContent = `${ftAvg.toFixed(1)}ms`;
-  if (debugShown) dbgRenders.forEach((f) => f());
+  if (debugShown)
+    dbgRenders.forEach((f) => {
+      f();
+    });
 }

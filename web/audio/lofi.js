@@ -246,7 +246,7 @@ function snare(t) {
 }
 function lofiTick() {
   const ac = lofi.ctx;
-  if (!ac || ac.state !== 'running') return;
+  if (ac?.state !== 'running') return;
   while (lofi.next < ac.currentTime + 0.2) {
     lofiStep(lofi.step, lofi.next);
     lofi.next += 60 / lofi.bpm / 4;
@@ -273,11 +273,16 @@ function lofiStep(step, t0) {
     ch = P.ch[ci];
   if (s === 0) {
     lofi.chordName = P.names[ci];
-    ch.forEach((m, i) => epNote(m, t + i * 0.014 + Math.random() * 0.01, s16 * 14, 0.055));
+    ch.forEach((m, i) => {
+      epNote(m, t + i * 0.014 + Math.random() * 0.01, s16 * 14, 0.055);
+    });
     bassNote(P.root[ci], t, s16 * 6);
   }
   if (s === 10) {
-    if (Math.random() < 0.45) ch.forEach((m, i) => epNote(m, t + i * 0.012, s16 * 5, 0.035));
+    if (Math.random() < 0.45)
+      ch.forEach((m, i) => {
+        epNote(m, t + i * 0.012, s16 * 5, 0.035);
+      });
     bassNote(P.root[ci] + (Math.random() < 0.5 ? 7 : 0), t, s16 * 4);
   }
   const sleepy = hen.mood === 'sleepy',
@@ -297,7 +302,7 @@ function lofiStep(step, t0) {
   for (let i = 0; i < n; i++)
     noiseHit(t0 + Math.random() * s16, 'bandpass', rand(2200, 4200), 0.6, rand(0.006, 0.028), 0.0025);
   if (Math.random() < 0.05) pop(t0 + Math.random() * s16, rand(0.05, 0.11), rand(700, 1000));
-  if (lofi.style === 'jazz') barPerc(step, t, s16);
+  if (lofi.style === 'jazz') barPerc(step, t);
 }
 function pop(t, v, f) {
   const ac = lofi.ctx;
@@ -347,7 +352,7 @@ function bongo(t, f, v) {
   o.start(t);
   o.stop(t + 0.16);
 }
-function barPerc(step, t, s16) {
+function barPerc(step, t) {
   const s = step % 16,
     s32 = step % 32;
   ice(t, s % 4 === 2 ? 0.05 : 0.022);

@@ -373,11 +373,11 @@ for (const [x, z] of [
 ])
   put(box(0.1, 0.08, 2.4, M.mahogTop), x, 0.91, z, pool);
 for (const z of [-1.2, 1.2]) put(box(1.34, 0.08, 0.1, M.mahogTop), 0, 0.91, z, pool);
-[0xf2f2e8, 0xe8c020, 0x2040b0, 0xc02020, 0x602080, 0xe06020, 0x206030, 0x202020].forEach((c, i) =>
-  put(sph(0.045, toon(c), 8), rand(-0.45, 0.45), 0.94, i === 0 ? 0.8 : rand(-0.9, 0.2), pool),
-);
+[0xf2f2e8, 0xe8c020, 0x2040b0, 0xc02020, 0x602080, 0xe06020, 0x206030, 0x202020].forEach((c, i) => {
+  put(sph(0.045, toon(c), 8), rand(-0.45, 0.45), 0.94, i === 0 ? 0.8 : rand(-0.9, 0.2), pool);
+});
 put(cyl(0.012, 0.02, 1.4, toon(0xc8a46a), 5), 0.3, 0.95, 0.5, pool).rotation.set(Math.PI / 2, 0, 0.4);
-const poolLamp = put(box(0.4, 0.12, 1.4, M.green), -5.0, 2.35, 0.2);
+put(box(0.4, 0.12, 1.4, M.green), -5.0, 2.35, 0.2);
 put(cyl(0.01, 0.01, 1.0, M.black, 4), -5.0, 2.9, 0.2);
 const poolLight = new THREE.PointLight(0xffe0a0, 0.5 * LIGHT_SCALE, 3.5, 1);
 poolLight.position.set(-5, 2.0, 0.2);

@@ -77,7 +77,7 @@ export function buildGlass(type) {
     tilt: 0,
     vel: new V3(),
     dead: false,
-    id: 'g' + Math.random().toString(36).slice(2, 7),
+    id: `g${Math.random().toString(36).slice(2, 7)}`,
   };
   glasses.push(gl);
   setFill(gl);
