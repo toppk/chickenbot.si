@@ -41,6 +41,13 @@ docs/             architecture and protocol
 Append `?ws=ws://host:port` to the URL to point the bar at a brain server; without one
 the in-page local brain runs it.
 
+## Dependencies
+
+- `bunfig.toml` sets a 14-day `minimumReleaseAge`: `bun install`/`bun update` never pick a version
+  published less than 14 days ago. Ranges in `package.json` are carets; `bun.lock` holds the exact versions.
+- CI actions are pinned to commit SHAs of releases at least 14 days old; bump them by hand.
+- `.bun-version` sets the Bun used in CI.
+
 ## Docs
 
 - [docs/architecture.md](docs/architecture.md): layers, startup, frame loop, build and tests

@@ -4,12 +4,13 @@ on:
   push:
   pull_request:
 
+# actions are pinned to commit SHAs of releases at least 14 days old (see bunfig.toml for npm)
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version-file: .bun-version
       - run: bun install --frozen-lockfile
@@ -19,7 +20,7 @@ jobs:
         run: bun run build:cdn && bun run test:e2e
       - name: smoke test, three.js bundled (the default)
         run: bun run build && bun run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
           path: dist/
