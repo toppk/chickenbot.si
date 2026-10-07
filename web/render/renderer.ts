@@ -19,15 +19,16 @@ export function applyStageCap() {
   stage.style.maxWidth = state.maxAspect ? `${Math.round(state.maxAspect * stage.clientHeight)}px` : '';
 }
 window.addEventListener('resize', applyStageCap);
-// ?ideal=1.6&cap=1.6 set the framing from the URL (0 = off), for comparing settings side by side
+// ?ideal=1.6&cap=1.6&rows=240 set the framing and art height from the URL (0 = off for ideal/cap)
 {
   const q = new URLSearchParams(location.search);
   for (const [key, field] of [
     ['ideal', 'idealAspect'],
     ['cap', 'maxAspect'],
+    ['rows', 'artRows'],
   ] as const) {
     const v = Number(q.get(key) ?? Number.NaN);
-    if (Number.isFinite(v) && v >= 0) state[field] = v;
+    if (Number.isFinite(v) && v >= 0 && (field !== 'artRows' || v >= 1)) state[field] = v;
   }
   applyStageCap();
 }

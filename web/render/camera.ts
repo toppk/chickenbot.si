@@ -1,13 +1,13 @@
 import { state } from '../core/state.ts';
 import { V3, clamp, reduce } from '../core/util.ts';
-import { camera, canvas } from './renderer.ts';
+import { applyStageCap, camera, canvas } from './renderer.ts';
 import { walls } from './wall-fade.ts';
 import { floor } from '../scene/room.ts';
 import { ceiling, fan } from '../scene/ceiling.ts';
 import { hen } from '../scene/hen-model.ts';
 import { say } from '../ui/bubbles.ts';
 import { send } from '../brain/link.ts';
-import { VH, VW } from './post.ts';
+import { RH, SCALE, VH, VW } from './post.ts';
 import { debugShown, setDebug } from '../ui/debug/panels.ts';
 import { byId } from '../core/dom.ts';
 import { HEN } from '../content/dialogue.ts';
@@ -26,14 +26,27 @@ export const CAM = { yaw: 38, pitch: 36, zoom: 4.9 },
     state.autoOrbit = false;
   }
 }
-const START = { ...CAM, autoOrbit: state.autoOrbit };
-/** Puts zoom, yaw, pitch and auto-orbit back to how the page loaded (including ?cam=). */
+const START = { ...CAM, autoOrbit: state.autoOrbit, idealAspect: state.idealAspect, maxAspect: state.maxAspect };
+/** Puts zoom, yaw, pitch, auto-orbit and framing back to how the page loaded (including URL parameters). */
 export function resetCamera() {
   CAM.yaw = START.yaw;
   CAM.pitch = START.pitch;
   CAM.zoom = START.zoom;
   state.autoOrbit = START.autoOrbit;
+  state.idealAspect = START.idealAspect;
+  state.maxAspect = START.maxAspect;
+  applyStageCap();
   state.idleT = 0;
+}
+/** The current view as URL parameters, plus the stage it was tuned on. */
+export function viewSettings() {
+  const yaw = ((CAM.yaw % 360) + 360) % 360,
+    dpr = window.devicePixelRatio || 1;
+  return (
+    `?cam=${yaw.toFixed(1)},${CAM.pitch.toFixed(1)},${CAM.zoom.toFixed(2)}` +
+    `&ideal=${state.idealAspect}&cap=${state.maxAspect}&rows=${state.artRows}` +
+    `   (stage ${VW}x${VH} @${dpr}x, aspect ${(VW / VH).toFixed(2)}, ${SCALE}x, ${RH} rows)`
+  );
 }
 export function updateCam(dt: number) {
   const under = CAM.pitch < 2;

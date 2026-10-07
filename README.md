@@ -26,7 +26,9 @@ and commit them.
 
 `?cam=yaw,pitch,zoom` (e.g. `?cam=200,30,7`) opens the page at a fixed view with auto-orbit off,
 handy for comparing renders. `?ideal=` and `?cap=` set the framing sliders the same way. In the
-debug windows, Reset Camera (or the Home key) puts the view back.
+debug windows, Reset Camera (or the Home key) puts the view and framing back, and Copy Settings
+copies (and logs to the console) the current view as URL parameters plus the stage size, for
+sending in tuned defaults.
 
 ## Layout
 

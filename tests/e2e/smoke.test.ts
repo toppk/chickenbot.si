@@ -106,6 +106,10 @@ describe('bar page', () => {
     await page.keyboard.press('Home');
     await hasText(page, '#d-zoom .v', '4.90');
     await hasText(page, '#d-pitch .v', '36.0');
+    // Copy Settings logs the view as URL parameters
+    const logged = page.waitForEvent('console', (m) => m.text().startsWith('chickenbot settings: ?cam='));
+    await page.click('text=Copy Settings');
+    expect((await logged).text()).toContain('&ideal=1.875&cap=0&rows=240');
 
     expect(errors).toEqual([]);
     await page.close();

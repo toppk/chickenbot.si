@@ -1,6 +1,6 @@
 import { state } from '../../core/state.ts';
 import { applyStageCap, stage } from '../../render/renderer.ts';
-import { CAM, PITCH_MAX, PITCH_MIN, resetCamera } from '../../render/camera.ts';
+import { CAM, PITCH_MAX, PITCH_MIN, resetCamera, viewSettings } from '../../render/camera.ts';
 import { JOINTS, hen } from '../../scene/hen-model.ts';
 import { liveP } from '../../scene/particles.ts';
 import { glasses } from '../../scene/glasses.ts';
@@ -109,30 +109,54 @@ export function initDebug() {
       (v) => v.toFixed(1),
     ),
   );
-  ibtn(rowIn(sb), 'Reset Camera', resetCamera).title = 'Home key';
+  {
+    const r = rowIn(sb);
+    ibtn(r, 'Reset Camera', () => {
+      resetCamera();
+      dbgRenders.forEach((f) => {
+        f();
+      });
+    }).title = 'Home key';
+    const copy = ibtn(r, 'Copy Settings', () => {
+      const text = viewSettings();
+      console.log(`chickenbot settings: ${text}`);
+      const done = (label: string) => {
+        copy.textContent = label;
+        setTimeout(() => (copy.textContent = 'Copy Settings'), 1500);
+      };
+      navigator.clipboard?.writeText(text).then(
+        () => done('Copied'),
+        () => window.prompt('Copy these settings:', text),
+      ) ?? window.prompt('Copy these settings:', text);
+    });
+  }
   // framing: the low end of Ideal Aspect and the high end of Max Aspect mean off
-  slider(
-    sb,
-    'd-ideal',
-    'Ideal Aspect',
-    0.7,
-    3,
-    () => state.idealAspect || 0.7,
-    (v) => (state.idealAspect = v < 0.75 ? 0 : Math.round(v * 40) / 40),
-    () => (state.idealAspect ? `${state.idealAspect.toFixed(3)} · now ${(VW / VH).toFixed(2)}` : 'off'),
+  dbgRenders.push(
+    slider(
+      sb,
+      'd-ideal',
+      'Ideal Aspect',
+      0.7,
+      3,
+      () => state.idealAspect || 0.7,
+      (v) => (state.idealAspect = v < 0.75 ? 0 : Math.round(v * 40) / 40),
+      () => (state.idealAspect ? `${state.idealAspect.toFixed(3)} · now ${(VW / VH).toFixed(2)}` : 'off'),
+    ),
   );
-  slider(
-    sb,
-    'd-maxasp',
-    'Max Aspect',
-    1.2,
-    3.6,
-    () => state.maxAspect || 3.6,
-    (v) => {
-      state.maxAspect = v > 3.5 ? 0 : Math.round(v * 20) / 20;
-      applyStageCap();
-    },
-    () => (state.maxAspect ? state.maxAspect.toFixed(2) : 'off'),
+  dbgRenders.push(
+    slider(
+      sb,
+      'd-maxasp',
+      'Max Aspect',
+      1.2,
+      3.6,
+      () => state.maxAspect || 3.6,
+      (v) => {
+        state.maxAspect = v > 3.5 ? 0 : Math.round(v * 20) / 20;
+        applyStageCap();
+      },
+      () => (state.maxAspect ? state.maxAspect.toFixed(2) : 'off'),
+    ),
   );
   sb.appendChild(Object.assign(document.createElement('div'), { className: 'sep' }));
   dbgRenders.push(
