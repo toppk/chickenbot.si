@@ -66,6 +66,9 @@ function placeBrain() {
 
 // builds the debug windows: called once by main after every module has loaded
 export function initDebug() {
+  console.info(
+    `chickenbot ${BUILD_REV} · viewport ${innerWidth}x${innerHeight} @${devicePixelRatio}x · phone status bar ${matchMedia('(max-width: 600px)').matches ? 'on' : 'off'}`,
+  );
   narrowDbg = stage.clientWidth < 700;
   // stats
   const sb = makeWin('stats', { title: 'stats', x: 0, y: 8, w: 290, notitle: true, closable: false });

@@ -19,6 +19,9 @@ export interface Mood {
   music: { style: MusicStyle; bpm: number };
   /** things chickenbot says, unprompted, in this mood */
   lines: string[];
+  /** extra lines only while no music can be heard, and only while it can */
+  quiet?: string[];
+  playing?: string[];
 }
 const MOOD_TABLE = {
   cheery: {
@@ -29,7 +32,9 @@ const MOOD_TABLE = {
     walk: 1.7,
     pour: 1.0,
     music: { style: 'jazz', bpm: 78 },
-    lines: ['Evening, all.', 'Good crowd tonight.', 'Somebody play something on that jukebox.'],
+    lines: ['Evening, all.', 'Good crowd tonight.'],
+    quiet: ['Somebody play something on that jukebox.'],
+    playing: ['I like this one.', 'Good tune, this.'],
   },
   content: {
     hud: 'CONTENT',

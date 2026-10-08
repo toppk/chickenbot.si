@@ -71,9 +71,9 @@
   background: var(--red);
   box-shadow: inset -2px -2px 0 var(--redlo);
 }
+/* 3px more on the right: the cell's own divider highlight is painted inside it */
 .c-face {
-  border-left: 3px solid var(--woodlo);
-  padding: 6px 12px;
+  padding: 6px 15px 6px 12px;
   background: rgba(0, 0, 0, 0.25);
 }
 #face {
@@ -81,6 +81,9 @@
   height: 96px;
   image-rendering: pixelated;
   display: block;
+  /* the bar's drop shadows fall to the right, so optical centre is a pixel left */
+  position: relative;
+  left: -1px;
   border: 3px solid var(--woodlo);
   box-shadow: 0 0 0 2px var(--woodhi);
 }
@@ -278,6 +281,77 @@
   #face {
     width: 64px;
     height: 64px;
+  }
+}
+/* phones: half the width can't hold three stat cells, so the cells share one evenly spaced row */
+@media (max-width: 600px) {
+  #hud {
+    grid-template-columns: repeat(6, auto);
+  }
+  .side {
+    display: contents;
+  }
+  .side.left .cell:first-child {
+    border-left: 0;
+  }
+  .c-sys {
+    border-right: 0;
+    box-shadow: none;
+  }
+  .cell.c-face {
+    padding-right: 7px;
+  }
+  .cell {
+    padding: 8px 4px;
+  }
+  .big {
+    font-size: 15px;
+  }
+  .mid {
+    font-size: 7px;
+  }
+  .lab {
+    font-size: 6px;
+    letter-spacing: 0.08em;
+  }
+  #face {
+    width: 56px;
+    height: 56px;
+  }
+  #linkbtn,
+  #lofibtn {
+    min-height: 26px;
+    padding: 0 6px;
+  }
+}
+@media (max-width: 400px) {
+  .cell {
+    padding: 8px 3px;
+  }
+  .cell.c-face {
+    padding-right: 6px;
+  }
+  .big {
+    font-size: 12px;
+  }
+  .pips i {
+    width: 7px;
+    height: 7px;
+  }
+  #face {
+    width: 48px;
+    height: 48px;
+  }
+}
+/* short screens (phones in landscape): keep the chat box from covering the scene */
+@media (max-height: 520px) {
+  #chat {
+    width: min(420px, calc(100% - 32px));
+    padding: 5px;
+    gap: 4px;
+  }
+  #chatlog {
+    height: 40px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

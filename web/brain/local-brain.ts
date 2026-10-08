@@ -12,6 +12,13 @@ import { say } from '../ui/bubbles.ts';
 import { live } from './link.ts';
 import { clock } from '../sim/world.ts';
 import { BANTER, CHAT } from '../content/dialogue.ts';
+import { lofi } from '../audio/lofi.ts';
+
+/** A mood's unprompted lines, with the ones that depend on whether music is playing. */
+function moodLines(m: MoodKey) {
+  const { lines, quiet = [], playing = [] } = MOODS[m];
+  return [...lines, ...(lofi.on && state.music ? playing : quiet)];
+}
 
 // Local brain: drives mood, banter and chat replies when no server is connected.
 export const brain = {
@@ -38,7 +45,7 @@ export const brain = {
         else if (clock - this.lastRegular < 14) m = 'cheery';
         if (m !== hen.mood) {
           setMood(m, 0.4 + Math.min(0.6, q * 0.12), 'local');
-          if (Math.random() < 0.5) say(hen, pick(MOODS[m].lines), 2.4);
+          if (Math.random() < 0.5) say(hen, pick(moodLines(m)), 2.4);
         }
       }
     }
@@ -48,7 +55,7 @@ export const brain = {
         const [i, t] = BANTER[this.banter % BANTER.length]!;
         this.banter++;
         say(regulars[i]!, t, 2.6);
-      } else say(hen, pick(MOODS[hen.mood].lines), 2.4);
+      } else say(hen, pick(moodLines(hen.mood)), 2.4);
     }
   },
   reply(text: string, from: string) {
