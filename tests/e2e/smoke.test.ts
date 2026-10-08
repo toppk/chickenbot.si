@@ -82,7 +82,11 @@ describe('bar page', () => {
       h({ type: 'lights', level: 0.2 });
       h({ type: 'music', on: false });
     });
-    await hasText(page, '#h-mood', 'GRUMPY');
+    // the local brain recomputes the mood every 1.5 s, so keep sending it until the status bar shows it
+    await page.waitForFunction(() => {
+      window.chickenbot.handle({ type: 'mood', mood: 'grumpy', intensity: 0.9 });
+      return document.getElementById('h-mood')?.textContent === 'GRUMPY';
+    });
     await hasText(page, '#chatlog', 'CHICKENBOT: Protocol check.');
     expect((await snapshot(page)).patrons.some((p) => p.name === 'Testa')).toBe(true);
 
