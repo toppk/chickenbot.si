@@ -81,6 +81,7 @@ the site; the build copies their licences, and three.js's, to `dist/licenses/`. 
 - [docs/architecture.md](docs/architecture.md): layers, startup, frame loop, build and tests
 - [docs/protocol.md](docs/protocol.md): the brain WebSocket messages
 - [docs/release.md](docs/release.md): CI, the Nix build, how a commit reaches chickenbot.si
+- [docs/todo.md](docs/todo.md): ideas and known gaps, including the music
 
 ## Module rules
 

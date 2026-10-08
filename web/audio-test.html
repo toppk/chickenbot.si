@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio Test</title>
+<style>
+  :root { --bg: #120b07; --fg: #ecdcb8; --dim: #9c8a6c; --btn: #3a1f12; --edge: #6e4126; --ok: #5fae6a; --bad: #d63222; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--fg); font: 16px/1.4 system-ui, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p { color: var(--dim); margin: 0 0 16px; }
+  button { display: block; width: 100%; margin: 0 0 10px; padding: 14px; font: inherit; color: var(--fg);
+    background: var(--btn); border: 2px solid var(--edge); border-radius: 6px; text-align: left; }
+  button small { display: block; color: var(--dim); }
+  #state { font: 13px/1.5 ui-monospace, monospace; background: #000; padding: 10px; border-radius: 6px; white-space: pre-wrap; margin: 6px 0 12px; }
+  #log { font: 13px/1.5 ui-monospace, monospace; white-space: pre-wrap; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); }
+</style>
+</head>
+<body>
+<h1>Chickenbot audio test</h1>
+<p>Tap each button in order and note which ones you hear. Turn the volume up. On an iPhone, try with the silent switch both ways.</p>
+<div id="state"></div>
+<button type="button" id="t1">1. Web Audio beep<small>what the bar's music uses</small></button>
+<button type="button" id="t2">2. Web Audio beep, media-player mode<small>tells iOS this page plays media (ignores the silent switch)</small></button>
+<button type="button" id="t3">3. &lt;audio&gt; element beep<small>the plain media path</small></button>
+<button type="button" id="t4">4. Unlock with &lt;audio&gt;, then Web Audio beep<small>the older iOS workaround</small></button>
+<button type="button" id="t5">5. Web Audio, decoded sample<small>a recorded beep instead of a generated tone</small></button>
+<button type="button" id="t6">6. Web Audio, second context in playback mode<small>a fresh context tuned for music</small></button>
+<button type="button" id="t7">7. Web Audio played through an &lt;audio&gt; element<small>likely fix if 3 works and 1 doesn't</small></button>
+<button type="button" id="t8">8. Rendered offline, played by &lt;audio&gt;<small>three-note chime; a fallback that avoids the live audio output</small></button>
+<div id="log"></div>
+
+<script type="module" src="./audio-test.ts"></script>
+</body>
+</html>
