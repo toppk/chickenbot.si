@@ -1,6 +1,7 @@
+/* Doom layout: the face sits at the centre of the page, the stat cells either side of it */
 #hud {
   display: grid;
-  grid-template-columns: auto auto auto auto auto auto minmax(0, 1fr);
+  grid-template-columns: 1fr auto 1fr;
   background:
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 9px),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 5px), var(--wood);
@@ -9,6 +10,16 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
   user-select: none;
   -webkit-user-select: none;
+}
+.side {
+  display: flex;
+  min-width: 0;
+}
+.side.left {
+  justify-content: flex-end;
+}
+.side.left .cell:first-child {
+  border-left: 3px solid var(--woodlo);
 }
 .cell {
   display: flex;
@@ -20,10 +31,6 @@
   border-right: 3px solid var(--woodlo);
   box-shadow: inset -3px 0 0 var(--woodhi);
   min-width: 0;
-}
-.cell:last-child {
-  border-right: 0;
-  box-shadow: none;
 }
 .big {
   font: 28px / 1 var(--px);
@@ -65,6 +72,7 @@
   box-shadow: inset -2px -2px 0 var(--redlo);
 }
 .c-face {
+  border-left: 3px solid var(--woodlo);
   padding: 6px 12px;
   background: rgba(0, 0, 0, 0.25);
 }
@@ -101,14 +109,27 @@
     opacity: 0.2;
   }
 }
-.c-chat {
-  align-items: stretch;
-  justify-content: center;
+/* chat lives in the view, bottom left: the last few lines above the input */
+#chat {
+  position: absolute;
+  left: 16px;
+  bottom: 12px;
+  width: min(560px, calc(100% - 32px));
+  box-sizing: border-box;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
-  min-width: 220px;
+  padding: 8px;
+  background: rgba(18, 11, 7, 0.82);
+  border: 2px solid var(--woodhi);
+  box-shadow:
+    inset 0 0 0 2px var(--woodlo),
+    3px 3px 0 rgba(0, 0, 0, 0.45);
 }
 #chatlog {
   font: 19px / 20px var(--vt);
+  text-shadow: 2px 2px 0 #000;
   height: 60px;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -158,14 +179,21 @@
   color: var(--dim);
 }
 #chatin:focus-visible,
+#sendbtn:focus-visible,
 #linkbtn:focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: 1px;
 }
+.c-sys {
+  align-items: stretch;
+}
 #linkbtn,
-#lofibtn {
+#lofibtn,
+#sendbtn {
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-height: 30px;
   gap: 6px;
   background: var(--inset);
   border: 0;
@@ -187,12 +215,41 @@
 #linkbtn .lamp.sim {
   background: var(--amber);
 }
-#lofibtn .lamp {
-  background: #3a2a20;
+#sendbtn svg {
+  fill: var(--cream);
+  shape-rendering: crispEdges;
 }
-#lofibtn .lamp.on {
-  background: var(--amber);
-  box-shadow: 0 0 6px var(--amber);
+#lofibtn .note {
+  color: var(--dim);
+  fill: currentColor;
+  shape-rendering: crispEdges;
+}
+#lofibtn .note.on {
+  color: var(--amber);
+  filter: drop-shadow(0 0 3px var(--amber));
+}
+/* off: a light band crosses the note every 10 s, so visitors notice it can be turned on */
+#lofibtn .glint {
+  fill: var(--cream);
+  transform: translateX(-4px);
+  animation: glint 10s linear infinite;
+}
+#lofibtn .note.on .glint {
+  display: none;
+}
+@keyframes glint {
+  0%,
+  90% {
+    transform: translateX(-4px);
+  }
+  100% {
+    transform: translateX(14px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #lofibtn .glint {
+    animation: none;
+  }
 }
 #lofibtn:focus-visible {
   outline: 2px solid var(--amber);
@@ -206,36 +263,8 @@
   background: var(--red);
 }
 @media (max-width: 900px) {
-  #hud {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
-    grid-template-areas: "pours mood orders patrons face" "chat chat chat chat chat";
-  }
-  .c-pours {
-    grid-area: pours;
-  }
-  .c-mood {
-    grid-area: mood;
-  }
-  .c-orders {
-    grid-area: orders;
-  }
-  .c-patrons {
-    grid-area: patrons;
-  }
-  .c-face {
-    grid-area: face;
-    border-right: 0;
-    box-shadow: none;
-  }
   .c-regs {
     display: none;
-  }
-  .c-chat {
-    grid-area: chat;
-    border-top: 3px solid var(--woodlo);
-    border-right: 0;
-    box-shadow: none;
-    padding: 8px 16px;
   }
   .big {
     font-size: 20px;

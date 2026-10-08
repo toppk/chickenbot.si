@@ -18,17 +18,22 @@
     <div id="bubbles"></div>
     <div id="hint">DRAG TO TURN · SCROLL TO ZOOM · ` SHOWS/HIDES DEBUG</div>
     <div id="wins"></div>
+    <div id="chat">
+      <div id="chatlog" aria-live="polite"></div>
+      <form id="chatform"><input id="chatin" maxlength="140" placeholder="say something to chickenbot" autocomplete="off"><button id="sendbtn" type="submit" aria-label="send" title="send"><svg viewBox="0 0 10 9" width="20" height="18" aria-hidden="true"><path d="M8 0h2v6h-2zM0 4h8v2h-8zM3 1h1v1h-1zM2 2h2v1h-2zM1 3h3v1h-3zM1 6h3v1h-3zM2 7h2v1h-2zM3 8h1v1h-1z"/></svg></button></form>
+    </div>
   </div>
   <footer id="hud">
-    <div class="cell c-pours"><div class="big" id="h-pours">0</div><div class="lab">POURS</div></div>
-    <div class="cell c-mood"><div class="mid" id="h-mood">CONTENT</div><div class="pips" id="h-pips"><i></i><i></i><i></i><i></i><i></i></div><div class="lab">MOOD</div></div>
-    <div class="cell c-orders"><div class="big" id="h-orders">0</div><div class="lab">ORDERS</div></div>
+    <div class="side left">
+      <div class="cell c-pours"><div class="big" id="h-pours">0</div><div class="lab">POURS</div></div>
+      <div class="cell c-mood"><div class="mid" id="h-mood">CONTENT</div><div class="pips" id="h-pips"><i></i><i></i><i></i><i></i><i></i></div><div class="lab">MOOD</div></div>
+      <div class="cell c-orders"><div class="big" id="h-orders">0</div><div class="lab">ORDERS</div></div>
+    </div>
     <div class="cell c-face"><canvas id="face" width="32" height="32" aria-label="Chickenbot's face"></canvas></div>
-    <div class="cell c-patrons"><div class="big" id="h-patrons">0</div><div class="lab">PATRONS</div></div>
-    <div class="cell c-regs"><div id="h-regs"></div><div class="lab">REGULARS</div></div>
-    <div class="cell c-chat">
-      <div id="chatlog" aria-live="polite"></div>
-      <form id="chatform"><input id="chatin" maxlength="140" placeholder="say something to chickenbot" autocomplete="off"><button id="lofibtn" type="button" aria-pressed="false" aria-label="lofi music"><i class="lamp" id="lofilamp"></i><span>LOFI</span></button><button id="linkbtn" type="button" aria-label="brain link settings"><i class="lamp sim" id="linklamp"></i><span id="linktxt">SIM</span></button></form>
+    <div class="side right">
+      <div class="cell c-patrons"><div class="big" id="h-patrons">0</div><div class="lab">PATRONS</div></div>
+      <div class="cell c-regs"><div id="h-regs"></div><div class="lab">REGULARS</div></div>
+      <div class="cell c-sys"><button id="lofibtn" type="button" aria-pressed="false" aria-label="lofi music"><svg id="lofilamp" class="note" viewBox="0 0 10 10" width="20" height="20" aria-hidden="true"><defs><clipPath id="note-shape"><path d="M3 1h1v7h-1zM9 0h1v7h-1zM6 0h3v1h-3zM4 1h5v1h-5zM4 2h3v1h-3zM1 7h2v1h-2zM0 8h4v1h-4zM0 9h3v1h-3zM7 5h2v1h-2zM6 6h3v1h-3zM6 7h3v1h-3z"/></clipPath></defs><g clip-path="url(#note-shape)"><rect width="10" height="10"/><path class="glint" d="M2 0h2L1 10h-2z"/></g></svg></button><button id="linkbtn" type="button" aria-label="brain link settings"><i class="lamp sim" id="linklamp"></i><span id="linktxt">SIM</span></button></div>
     </div>
   </footer>
 </div>

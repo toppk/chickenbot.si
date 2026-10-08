@@ -27,9 +27,9 @@ After an intended visual change, refresh the baselines with `UPDATE_VISUAL=1 bun
 and commit them.
 
 `?cam=yaw,pitch,zoom` (e.g. `?cam=200,30,7`) opens the page at a fixed view with auto-orbit off,
-handy for comparing renders. `?ideal=`, `?cap=`, `?rows=` and `?glass=` set the matching debug
-sliders the same way. In the debug windows, Reset (or the Home key) puts all of those back, and Copy
-Settings copies (and logs to the console) them as URL parameters plus the stage size, for sending in
+handy for comparing renders. `?ideal=`, `?cap=`, `?rows=`, `?glass=`, `?ink=`, `?orbit=`, `?step=`
+and `?pause=` set the matching controls in the camera debug window. There, Reset (or the Home key)
+puts all of those back, and Copy Settings copies (and logs to the console) them as URL parameters plus the stage size, for sending in
 tuned defaults.
 
 The debug windows start folded into a small Show tab; the backtick key or Show opens them, and

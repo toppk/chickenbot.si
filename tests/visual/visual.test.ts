@@ -40,6 +40,9 @@ const SEED_RANDOM = `{let s=0x5eed;Math.random=()=>{s=(s+0x6d2b79f5)|0;let t=Mat
 // follows the fake Date, which is exact.
 const EXACT_TIME = `{const raf=window.requestAnimationFrame.bind(window);const snap=(t)=>${PAUSED_AT}+16*Math.round((t-${PAUSED_AT})/16);performance.now=()=>Date.now();window.requestAnimationFrame=(cb)=>raf(()=>cb(snap(Date.now())));}`;
 
+// a running CSS animation (the jukebox note's glint) upsets the fake clock's frame timing
+const NO_CSS_ANIMATION = `document.addEventListener('DOMContentLoaded',()=>document.head.append(Object.assign(document.createElement('style'),{textContent:'*{animation:none!important}'})));`;
+
 let server: ReturnType<typeof startPreview>;
 let browser: Browser;
 
@@ -69,7 +72,7 @@ async function render(view: View) {
   await ctx.clock.install({ time: 0 });
   await ctx.clock.pauseAt(PAUSED_AT);
   // registered after the clock so it wraps the fake timers
-  await ctx.addInitScript(SEED_RANDOM + EXACT_TIME);
+  await ctx.addInitScript(SEED_RANDOM + EXACT_TIME + NO_CSS_ANIMATION);
   const page = await ctx.newPage();
   await page.goto(`${server.url.href}?cam=${view.cam}`);
   await page.waitForFunction(() => window.chickenbot);
@@ -77,8 +80,8 @@ async function render(view: View) {
   await page.evaluate(() => document.fonts.load('14px VT323'));
   await page.evaluate(() => document.fonts.ready);
   await page.clock.runFor(SIM_MS);
-  // DOM overlays (bubbles, hint, debug windows) aren't part of the render
-  await page.addStyleTag({ content: '#bubbles,#hint,#wins,#dbgmini{display:none!important}' });
+  // DOM overlays (bubbles, hint, debug windows, chat) aren't part of the render
+  await page.addStyleTag({ content: '#bubbles,#hint,#wins,#dbgmini,#chat{display:none!important}' });
   const png = await page.locator('#view').screenshot();
   await ctx.close();
   return png;

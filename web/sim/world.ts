@@ -108,12 +108,14 @@ export function world(dt: number) {
   }
   // jukebox
   jukeT += dt;
-  const jk = state.music ? 0.6 + 0.4 * Math.sin(jukeT * 3) : 0.08;
+  // it only looks like it's playing when the visitor can hear it
+  const playing = state.music && lofi.on;
+  const jk = playing ? 0.6 + 0.4 * Math.sin(jukeT * 3) : 0.08;
   jukeGlow.emissiveIntensity = jk + (lofi.pulse || 0) * 0.8;
   lofi.pulse = Math.max(0, (lofi.pulse || 0) - dt * 4);
-  jukeLight.intensity = (state.music ? 0.5 + 0.4 * Math.sin(jukeT * 2.2) : 0.05) * LIGHT_SCALE;
+  jukeLight.intensity = (playing ? 0.5 + 0.4 * Math.sin(jukeT * 2.2) : 0.05) * LIGHT_SCALE;
   jukeLight.color.setHSL((jukeT * 0.05) % 1, 0.7, 0.55);
-  if (state.music && Math.random() < 0.3)
+  if (playing && Math.random() < 0.3)
     for (const t of tubes) {
       t.getWorldPosition(_v);
       emit(K.FLOAT, [0.6, 0.85, 1], _v.x, _v.y - 0.55, _v.z + rand(-0.02, 0.02), 0, 0.4, 0, 3, _v.y - 0.6);

@@ -14,6 +14,10 @@ export interface State {
   /** widest stage aspect before the rest becomes a dark frame; 0 = no cap */
   maxAspect: number;
   autoOrbit: boolean;
+  /** auto-orbit turns this many degrees, then holds (0 = turn continuously) */
+  orbitStep: number;
+  /** seconds auto-orbit holds between turns */
+  orbitPause: number;
   /** the post pass's outline (ink) lines */
   inkLines: boolean;
   /** seconds since the visitor last touched the camera */
@@ -34,6 +38,8 @@ export const state: State = {
   idealAspect: 1.6,
   maxAspect: 0,
   autoOrbit: true,
+  orbitStep: 33,
+  orbitPause: 15,
   inkLines: true,
   idleT: 0,
   wireEl: null,

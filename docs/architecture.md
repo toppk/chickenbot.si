@@ -69,10 +69,12 @@ upscale. The post shader picks each art pixel from `gl_FragCoord / scale`.
 The camera is orthographic. At a given zoom, `updateCam()` shows as much of the room as a stage of
 shape `state.idealAspect` would (default 1.875, about a laptop window), so wide windows zoom in and
 tall ones zoom out, and a narrow phone still always fits the bar. `state.maxAspect` optionally stops
-the stage widening; the extra width becomes the page's dark frame. Both are sliders in the stats
+the stage widening; the extra width becomes the page's dark frame. Both are sliders in the camera
 window ("Ideal Aspect", "Max Aspect") and URL parameters (`?ideal=`, `?cap=`; 0 = off) while the
-right values are being found. "Reset" (or the Home key) restores zoom, yaw, pitch, auto-orbit,
-framing, Art Rows and Glass Opacity to how the page loaded; "Copy Settings" copies and logs the same
+right values are being found. "Reset" (or the Home key) restores zoom, yaw, pitch, framing, Art Rows,
+Glass Opacity, Ink Lines and auto-orbit (on, step, pause) to how the page loaded. Auto-orbit turns
+`orbitStep` degrees with an eased start and stop, then holds for `orbitPause` seconds (step 0 =
+continuous); "Copy Settings" copies and logs the same
 values as URL parameters, with the stage size they were tuned on.
 
 ## three.js compatibility

@@ -5,7 +5,7 @@ import { debugShown, setDebug } from './panels.ts';
 import { byId } from '../../core/dom.ts';
 
 // ImGui-style debug window kit: draggable windows, sliders, checkboxes, buttons.
-export type WinId = 'stats' | 'brain' | 'wire';
+export type WinId = 'stats' | 'camera' | 'brain' | 'wire';
 export const winsEl = byId('wins'),
   W = {} as Record<WinId, HTMLElement>;
 export let zTop = 10;

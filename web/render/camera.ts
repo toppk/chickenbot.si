@@ -17,6 +17,10 @@ import { HEN } from '../content/dialogue.ts';
 export const PITCH_MIN = -70,
   PITCH_MAX = 85;
 let seenCeiling = false;
+/** auto-orbit's average speed, degrees per second */
+const ORBIT_SPEED = 3;
+let orbitClock = 0,
+  orbitFrom = 0;
 export const CAM = { yaw: 56.5, pitch: 24, zoom: 5.78 },
   TGT = new V3(0, 0.9, 0);
 // ?cam=yaw,pitch,zoom pins the starting view and stops auto-orbit (unless &orbit=1), for comparing renders
@@ -34,6 +38,8 @@ const START = {
   ...CAM,
   autoOrbit: state.autoOrbit,
   inkLines: state.inkLines,
+  orbitStep: state.orbitStep,
+  orbitPause: state.orbitPause,
   idealAspect: state.idealAspect,
   maxAspect: state.maxAspect,
   artRows: state.artRows,
@@ -46,6 +52,8 @@ export function resetView() {
   CAM.zoom = START.zoom;
   state.autoOrbit = START.autoOrbit;
   state.inkLines = START.inkLines;
+  state.orbitStep = START.orbitStep;
+  state.orbitPause = START.orbitPause;
   state.idealAspect = START.idealAspect;
   state.maxAspect = START.maxAspect;
   state.artRows = START.artRows;
@@ -61,7 +69,7 @@ export function viewSettings() {
   return (
     `?cam=${yaw.toFixed(1)},${CAM.pitch.toFixed(1)},${CAM.zoom.toFixed(2)}` +
     `&ideal=${state.idealAspect}&cap=${state.maxAspect}&rows=${state.artRows}&glass=${state.glassOpacity}` +
-    `&ink=${+state.inkLines}&orbit=${+state.autoOrbit}` +
+    `&ink=${+state.inkLines}&orbit=${+state.autoOrbit}&step=${state.orbitStep}&pause=${state.orbitPause}` +
     `   (stage ${VW}x${VH} @${dpr}x, aspect ${(VW / VH).toFixed(2)}, ${SCALE}x, ${RH} rows)`
   );
 }
@@ -76,7 +84,18 @@ export function updateCam(dt: number) {
     send({ type: 'event', event: 'easter', what: 'ceiling' });
   }
   state.idleT += dt;
-  if (state.autoOrbit && !reduce && state.idleT > 8 && !drag) CAM.yaw += dt * 3;
+  if (state.autoOrbit && !reduce && state.idleT > 8 && !drag) {
+    if (!state.orbitStep) CAM.yaw += dt * ORBIT_SPEED;
+    else {
+      // each turn eases in and out (smoothstep), then holds for orbitPause
+      const move = state.orbitStep / ORBIT_SPEED;
+      if (orbitClock === 0) orbitFrom = CAM.yaw;
+      orbitClock += dt;
+      const t = Math.min(1, orbitClock / move);
+      CAM.yaw = orbitFrom + state.orbitStep * t * t * (3 - 2 * t);
+      if (orbitClock >= move + state.orbitPause) orbitClock = 0;
+    }
+  } else orbitClock = 0;
   const asp = VW / VH;
   // show as much room as an idealAspect stage would at this zoom: wide windows zoom in, tall ones out
   let hh = state.idealAspect ? CAM.zoom * Math.sqrt(state.idealAspect / asp) : CAM.zoom;

@@ -10,7 +10,7 @@ const URL_UNDER_TEST = process.env.E2E_URL;
 const CSP = process.env.E2E_CSP !== '0' && !URL_UNDER_TEST;
 const IGNORED = [/blocked\.invalid/];
 const THIRD_PARTY_OK = CSP ? [] : [/^https:\/\/cdn\.jsdelivr\.net\/npm\/three@/];
-const DEFAULTS = '&ideal=1.6&cap=0&rows=414&glass=0.2&ink=1&orbit=1';
+const DEFAULTS = '&ideal=1.6&cap=0&rows=414&glass=0.2&ink=1&orbit=1&step=33&pause=15';
 
 let server: ReturnType<typeof startPreview> | undefined;
 let browser: Browser;
@@ -95,6 +95,8 @@ describe('bar page', () => {
     // the visible Show control opens the debug windows; Hide and the backtick key fold them again
     await page.click('#d-show');
     await visible(page, 'section[aria-label="stats"]');
+    await page.click('text=Toggle Camera');
+    await visible(page, 'section[aria-label="camera"]');
     await page.click('text=Toggle Brain');
     await page.click('text=Toggle Wire');
     await visible(page, 'section[aria-label="wire"]');

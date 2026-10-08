@@ -58,7 +58,9 @@ body {
 #hint {
   position: absolute;
   left: 16px;
-  bottom: 12px;
+  /* clear of the debug Show box in the top right */
+  right: 130px;
+  top: 10px;
   font: 8px / 1.6 var(--px);
   color: var(--cream);
   opacity: 0.55;

@@ -71,10 +71,14 @@ export function initDebug() {
   const sb = makeWin('stats', { title: 'stats', x: 0, y: 8, w: 290, notitle: true, closable: false });
   W.stats.style.left = 'auto';
   W.stats.style.right = '8px';
-  sb.innerHTML = `<div class="statsTop"><div class="stat" id="d-ft"></div><button type="button" class="ibtn" id="d-hide" aria-label="hide debug windows">Hide</button></div><div class="stat" id="d-tri"></div><div class="stat">Num Skinning Joints: ${JOINTS}</div><div class="stat">Build: ${BUILD_REV}</div><div class="stat" id="d-ent"></div><div class="sep"></div><div>Camera Controls:</div><div class="dim">&nbsp; LMB + Mouse Move: Orbit</div><div class="dim">&nbsp; Mouse Wheel: Zoom</div><div class="dim">&nbsp; Home: Reset</div>`;
+  sb.innerHTML = `<div class="statsTop"><div class="stat" id="d-ft"></div><button type="button" class="ibtn" id="d-hide" aria-label="hide debug windows">Hide</button></div><div class="stat" id="d-tri"></div><div class="stat">Num Skinning Joints: ${JOINTS}</div><div class="stat">Build: ${BUILD_REV}</div><div class="stat" id="d-ent"></div>`;
+  // camera: the view and every setting Copy Settings reports
+  // left of the stats window, clear of the wire window at the top left
+  const cb = makeWin('camera', { title: 'camera', x: Math.max(8, stage.clientWidth - 616), y: 8, w: 300 });
+  cb.innerHTML = '<div class="dim">drag: orbit · wheel: zoom · Home: reset</div>';
   dbgRenders.push(
     slider(
-      sb,
+      cb,
       'd-zoom',
       'Zoom',
       2.5,
@@ -86,7 +90,7 @@ export function initDebug() {
   );
   dbgRenders.push(
     slider(
-      sb,
+      cb,
       'd-yaw',
       'Yaw',
       0,
@@ -101,7 +105,7 @@ export function initDebug() {
   );
   dbgRenders.push(
     slider(
-      sb,
+      cb,
       'd-pitch',
       'Pitch',
       PITCH_MIN,
@@ -112,7 +116,7 @@ export function initDebug() {
     ),
   );
   {
-    const r = rowIn(sb);
+    const r = rowIn(cb);
     ibtn(r, 'Reset', () => {
       resetView();
       dbgRenders.forEach((f) => {
@@ -135,7 +139,7 @@ export function initDebug() {
   // framing: the low end of Ideal Aspect and the high end of Max Aspect mean off
   dbgRenders.push(
     slider(
-      sb,
+      cb,
       'd-ideal',
       'Ideal Aspect',
       0.7,
@@ -147,7 +151,7 @@ export function initDebug() {
   );
   dbgRenders.push(
     slider(
-      sb,
+      cb,
       'd-maxasp',
       'Max Aspect',
       1.2,
@@ -160,10 +164,10 @@ export function initDebug() {
       () => (state.maxAspect ? state.maxAspect.toFixed(2) : 'off'),
     ),
   );
-  sb.appendChild(Object.assign(document.createElement('div'), { className: 'sep' }));
+  cb.appendChild(Object.assign(document.createElement('div'), { className: 'sep' }));
   dbgRenders.push(
     slider(
-      sb,
+      cb,
       'd-rows',
       'Art Rows',
       120,
@@ -181,7 +185,7 @@ export function initDebug() {
   );
   dbgRenders.push(
     slider(
-      sb,
+      cb,
       'd-glass',
       'Glass Opacity',
       0,
@@ -193,8 +197,32 @@ export function initDebug() {
       (v) => v.toFixed(2),
     ),
   );
+  dbgRenders.push(
+    slider(
+      cb,
+      'd-ostep',
+      'Orbit Step',
+      0,
+      90,
+      () => state.orbitStep,
+      (v) => (state.orbitStep = Math.round(v)),
+      (v) => (Math.round(v) ? `${Math.round(v)}°` : 'smooth'),
+    ),
+  );
+  dbgRenders.push(
+    slider(
+      cb,
+      'd-opause',
+      'Orbit Pause',
+      0,
+      20,
+      () => state.orbitPause,
+      (v) => (state.orbitPause = Math.round(v * 2) / 2),
+      (v) => `${(Math.round(v * 2) / 2).toFixed(1)} s`,
+    ),
+  );
   {
-    const r = rowIn(sb);
+    const r = rowIn(cb);
     r.style.gap = '14px';
     dbgRenders.push(
       check(
@@ -243,6 +271,7 @@ export function initDebug() {
   );
   {
     const r = rowIn(sb);
+    ibtn(r, 'Toggle Camera', () => toggleWin('camera'));
     ibtn(r, 'Toggle Brain', () => toggleWin('brain'));
     ibtn(r, 'Toggle Wire', () => toggleWin('wire'));
   }
@@ -417,6 +446,7 @@ export function initDebug() {
   wb.appendChild(state.wireEl);
   wireBuf.forEach(appendWire);
   W.wire.hidden = true;
+  W.camera.hidden = true;
   // shrink / show: the stats panel folds down to a small permanent tab in the same corner
   mini = document.createElement('section');
   mini.className = 'win';
